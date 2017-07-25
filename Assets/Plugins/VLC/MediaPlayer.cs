@@ -133,7 +133,7 @@ namespace Net.Media
         /// <param name="handle">VLC MediaPlayer需要绑定显示的窗体句柄</param>
         /// <returns></returns>
         public static libvlc_media_player_t Create_MediaPlayer(libvlc_instance_t libvlc_instance, IntPtr handle)
-        { 
+        {
             libvlc_media_player_t libvlc_media_player = IntPtr.Zero;
 
             try
@@ -154,7 +154,7 @@ namespace Net.Media
                 }
 
                 //设置播放窗口            
-                SafeNativeMethods.libvlc_media_player_set_hwnd(libvlc_media_player, (int)handle);
+                //SafeNativeMethods.libvlc_media_player_set_hwnd(libvlc_media_player, (int)handle);
 
                 return libvlc_media_player;
             }
@@ -233,19 +233,19 @@ namespace Net.Media
 
                 SafeNativeMethods.libvlc_media_parse(libvlc_media);
                 long duration = SafeNativeMethods.libvlc_media_get_duration(libvlc_media);
-                UnityEngine.Debug.Log("duration: "+ duration/1000);
-                
+                UnityEngine.Debug.Log("duration: " + duration / 1000);
+
                 //将Media绑定到播放器上
                 SafeNativeMethods.libvlc_media_player_set_media(libvlc_media_player, libvlc_media);
- 
+
                 //释放libvlc_media资源
                 SafeNativeMethods.libvlc_media_release(libvlc_media);
-                libvlc_media = IntPtr.Zero; 
+                libvlc_media = IntPtr.Zero;
                 if (0 != SafeNativeMethods.libvlc_media_player_play(libvlc_media_player))
                 {
                     return false;
                 }
-               
+
                 //休眠指定时间
                 Thread.Sleep(500);
 
@@ -265,26 +265,26 @@ namespace Net.Media
             }
         }
 
-        public static void SetFormart(libvlc_media_player_t libvlc_media_player,  string formart,int width,int height,int pitch)
+        public static void SetFormart(libvlc_media_player_t libvlc_media_player, string formart, int width, int height, int pitch)
         {
             SafeNativeMethods.libvlc_video_set_format(libvlc_media_player, StrToIntPtr(formart), width, height, pitch);
         }
 
-        public static int GetMediaWidth(libvlc_media_player_t libvlc_media_player )
+        public static int GetMediaWidth(libvlc_media_player_t libvlc_media_player)
         {
             int width = SafeNativeMethods.libvlc_video_get_width(libvlc_media_player);
-            UnityEngine.Debug.Log("width: "+ width);
-            return width; 
+            UnityEngine.Debug.Log("width: " + width);
+            return width;
         }
 
-        public static int GetMediaHeight(libvlc_media_player_t libvlc_media_player )
+        public static int GetMediaHeight(libvlc_media_player_t libvlc_media_player)
         {
             int height = SafeNativeMethods.libvlc_video_get_height(libvlc_media_player);
-            UnityEngine.Debug.Log("height: "+ height);
-            return height;  
+            UnityEngine.Debug.Log("height: " + height);
+            return height;
         }
 
-        
+
 
         /// <summary>
         /// 暂停或恢复视频
@@ -597,7 +597,27 @@ namespace Net.Media
             }
         }
 
+        public static void SetCallbacks(libvlc_media_player_t libvlc_media_player,VideoLockCB lockcb,VideoUnlockCB unlockcb, VideoDisplayCB displaycb, IntPtr opaque)
+        {
+            try
+            {
+                SafeNativeMethods.libvlc_video_set_callbacks(libvlc_media_player, lockcb, unlockcb, displaycb, opaque);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message); 
+            }
+        }
+
         #endregion
+
+
+        public delegate IntPtr VideoLockCB(IntPtr opaque, IntPtr planes);
+        public delegate void VideoUnlockCB(IntPtr opaque, IntPtr picture, IntPtr planes);
+        //显示图片
+        public delegate void VideoDisplayCB(IntPtr opaque, IntPtr picture);
+
+
 
         #region 私有函数
         //将string []转换为IntPtr
@@ -699,68 +719,23 @@ namespace Net.Media
 
             // 设置编码
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player ,IntPtr chroma,Int32 width, Int32 height, Int32 pitch);
+            internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, Int32 width, Int32 height, Int32 pitch);
 
 
 
-             
+
+
+           
 
 
             // 视频每一帧的数据信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, 
-                libvlc_video_lock_cb_callback libvlc_video_lock_cb_callback_, 
-                libvlc_video_unlock_cb_callback libvlc_video_unlock_cb_callback_, 
-                libvlc_video_display_cb_callback libvlc_video_display_cb_callback_,
-                0);
-
-
-            public static byte[] buffer = new byte[1024 * 4];
-            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_lock_cb_callback(IntPtr opaque, IntPtr planes);
-            //{
-            //    Lock();
-            //    Marshal.Copy(planes, buffer, 0, 1024 * 4);
-            //}
-            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_unlock_cb_callback(IntPtr opaque, IntPtr picture, IntPtr planes);
-            //{
-            //    Unlock();
-            //}
-            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_display_cb_callback(IntPtr opaque, IntPtr picture);
-            //{
-            //    if (Islock())
-            //    {
-            //        //fwrite(buffer, sizeof buffer, 1, fp);  
-            //    }
-            //}
-
-
-            public static bool flag = false;
-            public static void Lock()
-            {
-                flag = true;
-            }
-            public static void Unlock()
-            {
-                flag = false;
-            }
-            public static bool Islock()
-            {
-                return false;
-            }
-
-
-
-
-
-
-
-
-
-
-
+            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer,
+                VideoLockCB lockCB,
+                VideoUnlockCB unlockCB,
+                VideoDisplayCB displayCB,
+                IntPtr opaque);
+             
             // 设置图像输出的窗口
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_player_set_hwnd(libvlc_media_player_t libvlc_mediaplayer, Int32 drawable);
@@ -780,7 +755,7 @@ namespace Net.Media
             // 解析视频资源的媒体信息(如时长等)
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_parse(libvlc_media_t libvlc_media);
-            
+
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern Int32 libvlc_video_get_width(libvlc_media_player_t libvlc_mediaplayer);
 
