@@ -1,0 +1,10 @@
+Assembly-CSharp.csproj
+Assembly-CSharp-firstpass.csproj
+UnityVLC.csproj
+UnityVLC.Plugins.csproj
+UnityVLC.sln
+.vs/
+.vscode/
+Library/
+Temp/
+obj/

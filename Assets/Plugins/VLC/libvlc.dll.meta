@@ -24,7 +24,7 @@ PluginImporter:
           Exclude OSXIntel64: 0
           Exclude OSXUniversal: 0
           Exclude WebGL: 0
-          Exclude Win: 1
+          Exclude Win: 0
           Exclude Win64: 0
           Exclude WindowsStoreApps: 0
     data:
@@ -61,7 +61,7 @@ PluginImporter:
       second:
         enabled: 0
         settings:
-          CPU: None
+          CPU: AnyCPU
     data:
       first:
         Facebook: Win64
@@ -115,9 +115,9 @@ PluginImporter:
       first:
         Standalone: Win
       second:
-        enabled: 0
+        enabled: 1
         settings:
-          CPU: None
+          CPU: AnyCPU
     data:
       first:
         Standalone: Win64

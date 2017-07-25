@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class Test : MonoBehaviour
 {
+    //视频宽
+    public int width;
+    //视频高
+    public int height;
     public Texture2D texture;
     IntPtr libvlc_instance_t;
     IntPtr libvlc_media_player_t;
@@ -11,17 +15,21 @@ public class Test : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        texture = new Texture2D(640, 480, TextureFormat.YUY2, false);
+        texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
         handle = new IntPtr(110);
          
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
         
-        libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, texture.GetNativeTexturePtr());
+        libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
         
-        bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "file:///D:\\MyProject\\VLC\\Assets\\StreamingAssets\\test.mp4");
+        bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "file:///"+Application.streamingAssetsPath+"/test.mp4");
         Debug.Log(ready);
         
+        width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
+        height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
+        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB32", width, height, width * 4);
+
         Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
     }
 
