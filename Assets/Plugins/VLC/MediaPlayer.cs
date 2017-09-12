@@ -27,7 +27,7 @@ namespace Net.Media
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
         //private static string program_arg = "--sout=#duplicate{dst=std{access=file,mux=ts,dst=d:/test.ts}}";
-        private static string[] arguments = { "-I", "dummy", "--ignore-config", "--video-title", plugin_arg };//, program_arg };
+        private static string[] arguments = { "-I", "dummy", "--ignore-config", "--no-video-title", plugin_arg };//, program_arg };
 
         #region 结构体
         public struct libvlc_media_stats_t
@@ -477,14 +477,14 @@ namespace Net.Media
                     return false;
                 }
 
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
+                //if (!Directory.Exists(path))
+                //{
+                //    Directory.CreateDirectory(path);
+                //}
 
                 snap_shot_path = path + "\\" + name;
 
-                if (0 == SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), 0, 0))
+                if (0 == SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), 1024, 576))
                 {
                     return true;
                 }
@@ -602,6 +602,7 @@ namespace Net.Media
             try
             {
                 SafeNativeMethods.libvlc_video_set_callbacks(libvlc_media_player, lockcb, unlockcb, displaycb, opaque);
+                UnityEngine.Debug.Log("SetCallbacks");
             }
             catch (Exception e)
             {
