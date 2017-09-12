@@ -43,28 +43,25 @@ public class Test : MonoBehaviour
         texture = new Texture2D(1024, 576, TextureFormat.RGBA32, false);
         mat.mainTexture = texture;
         _buff = Marshal.AllocHGlobal(_pitch * _height);
-        handle = new IntPtr(110);
+        handle = new IntPtr(1);
 
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
 
         libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
-
-        width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
-        height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
-
-        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB", _width, _height, _width * 4);
+         
         MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
-
-
+         
         //"file:///"+Application.streamingAssetsPath+"/test.mp4");rtmp://live.hkstv.hk.lxdns.com/live/hks
         //bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtsp://127.0.0.1:8554/1");
         ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtmp://live.hkstv.hk.lxdns.com/live/hks");
         Debug.Log(ready);
 
-        
-        
+        width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
+        height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
+        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB", _width, _height, _width * 4);
 
         Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
+        Debug.Log(Application.dataPath);
     }
 
 
