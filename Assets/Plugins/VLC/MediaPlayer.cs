@@ -24,6 +24,7 @@ namespace Net.Media
 
         //vlc库启动参数配置
         private static string pluginPath = System.Environment.CurrentDirectory + "\\plugins\\";
+
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
         //private static string program_arg = "--sout=#duplicate{dst=std{access=file,mux=ts,dst=d:/test.ts}}";
