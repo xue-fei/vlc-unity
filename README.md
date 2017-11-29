@@ -1,2 +1,6 @@
 #UnityVLC
-UnityVLC
+Unity调用VLC的库解码视频显示到3D场景中，支持常见视频格式和rtmp、rtsp等视频流
+
+系统是64位的，因为我用的VLC的类库是64位的，用64位的Unity导出exe时选择x86_64，导出后需要将工程中Plugins下的plugins文件夹拷贝到发布后的Plugins文件夹下
+
+示例是播放HKS的rtmp视频流
