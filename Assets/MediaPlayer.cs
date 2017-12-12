@@ -29,8 +29,9 @@ namespace Net.Media
         
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
-        //private static string program_arg = "--sout=#duplicate{dst=std{access=file,mux=ts,dst=d:/test.ts}}";
-        private static string[] arguments = { "-I", "dummy", "--ignore-config", "--no-video-title", plugin_arg };//, program_arg };
+        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=d:/test.flv}}";
+        //https://www.cnblogs.com/waimai/p/3342739.html
+        private static string[] arguments = { "-I", "dummy", "--ignore-config", "--no-video-title", plugin_arg , program_arg };
 
         #region 结构体
         public struct libvlc_media_stats_t
