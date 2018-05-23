@@ -26,13 +26,16 @@ public class Test : MonoBehaviour
     private const int _pixelBytes = 4;
     private const int _pitch = 1024 * _pixelBytes;
     private IntPtr _buff = IntPtr.Zero;
-
-    private float fireRate = 0.02F;
-    private float nextFire = 0.0F;
+     
     bool ready = false;
+
+    string snapShotpath; 
     // Use this for initialization
     void Start()
     {
+        Loom.Initialize();
+        snapShotpath = "file:///" + Application.streamingAssetsPath;
+
         if (_videoLockCB == null)
             _videoLockCB = new MediaPlayer.VideoLockCB(VideoLockCallBack);
         if (_videoUnlockCB == null)
@@ -48,9 +51,9 @@ public class Test : MonoBehaviour
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
 
         libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
-         
+
         MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
-         
+
         //"file:///"+Application.streamingAssetsPath+"/test.mp4");rtmp://live.hkstv.hk.lxdns.com/live/hks
         //bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtsp://127.0.0.1:8554/1");
         ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtmp://live.hkstv.hk.lxdns.com/live/hks");
@@ -68,30 +71,32 @@ public class Test : MonoBehaviour
     // Update is called once per frame
     void Update()
     { 
-        //if (ready && Time.time > nextFire)
-        //{ 
-            //Debug.Log(Islock());
-            if (Islock())
-            {
-                texture.LoadRawTextureData(_buff, _buff.ToInt32());
-                texture.Apply(); 
-            }
-            //nextFire = Time.time + fireRate;
-        //}
+        if (Islock())
+        {
+            texture.LoadRawTextureData(_buff, _buff.ToInt32());
+            texture.Apply();
+        } 
     }
-
+    
     private void OnGUI()
     {
-        if(GUI.Button(new Rect(0,0,100,100),"Take"))
+        if (GUI.Button(new Rect(0, 0, 100, 100), "Take"))
         {
-          Debug.Log (MediaPlayer.TakeSnapShot(libvlc_media_player_t, @Application.streamingAssetsPath, "testa.jpg"));
+            //Loom.RunAsync(() =>
+            //{
+            //vlc截图未解决 用Unity保存帧图，画面是上下反转的
+            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg",1024,576));
+             
+            byte [] bs = texture.EncodeToJPG();
+            File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
+            //});
         }
-         
+
     }
 
     private IntPtr VideoLockCallBack(IntPtr opaque, IntPtr planes)
     {
-        Lock(); 
+        Lock();
         Marshal.WriteIntPtr(planes, _buff);//初始化 
         //Debug.Log("Lock");
         return IntPtr.Zero;

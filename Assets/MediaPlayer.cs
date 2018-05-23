@@ -29,9 +29,10 @@ namespace Net.Media
         
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
-        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=d:/test.flv}}";
+        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/test.flv}}";
+        //    + "--vout-filter=transform,--transform-type=hflip";
         //https://www.cnblogs.com/waimai/p/3342739.html
-        private static string[] arguments = { "-I", "dummy", "--ignore-config", "--no-video-title", plugin_arg , program_arg };
+        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg , program_arg };
 
         #region 结构体
         public struct libvlc_media_stats_t
@@ -469,7 +470,7 @@ namespace Net.Media
         /// <param name="path">快照要存放的路径</param>
         /// <param name="name">快照保存的文件名称</param>
         /// <returns></returns>
-        public static bool TakeSnapShot(libvlc_media_player_t libvlc_media_player, string path, string name)
+        public static bool TakeSnapShot(libvlc_media_player_t libvlc_media_player, string path, string name,int width,int height)
         {
             try
             {
@@ -478,22 +479,25 @@ namespace Net.Media
                 if (libvlc_media_player == IntPtr.Zero ||
                     libvlc_media_player == null)
                 {
+                    UnityEngine.Debug.LogError("HERE1");
                     return false;
-                }
+                } 
 
-                //if (!Directory.Exists(path))
-                //{
-                //    Directory.CreateDirectory(path);
-                //}
+                snap_shot_path = path + "/"+  name;
+                snap_shot_path = snap_shot_path.Replace('/','\\');
+                snap_shot_path = "D:\\111.jpg";
+                UnityEngine.Debug.LogError("snap_shot_path:"+ snap_shot_path);
 
-                snap_shot_path = path + "\\" + name;
-
-                if (0 == SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), 1024, 576))
+                int code = SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), width, height);
+                UnityEngine.Debug.LogError("code:"+ code);
+                if (0 == code)
                 {
+                    UnityEngine.Debug.LogError("HERE2");
                     return true;
                 }
                 else
                 {
+                    UnityEngine.Debug.LogError("HERE3");
                     return false;
                 }
             }
