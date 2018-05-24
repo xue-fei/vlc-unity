@@ -1,10 +1,9 @@
 ﻿using Net.Media;
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+
 public class Test : MonoBehaviour
 {
     //视频宽
@@ -17,31 +16,29 @@ public class Test : MonoBehaviour
     IntPtr libvlc_media_player_t;
     IntPtr handle;
 
-    private MediaPlayer.VideoLockCB _videoLockCB;
-    private MediaPlayer.VideoUnlockCB _videoUnlockCB;
-    private MediaPlayer.VideoDisplayCB _videoDisplayCB;
+    private VideoLockCB _videoLockCB;
+    private VideoUnlockCB _videoUnlockCB;
+    private VideoDisplayCB _videoDisplayCB;
 
     private const int _width = 1024;
     private const int _height = 576;
     private const int _pixelBytes = 4;
     private const int _pitch = 1024 * _pixelBytes;
     private IntPtr _buff = IntPtr.Zero;
-     
+
     bool ready = false;
 
-    string snapShotpath; 
+    string snapShotpath;
     // Use this for initialization
     void Start()
-    {
-        Loom.Initialize();
+    { 
         snapShotpath = "file:///" + Application.streamingAssetsPath;
 
-        if (_videoLockCB == null)
-            _videoLockCB = new MediaPlayer.VideoLockCB(VideoLockCallBack);
-        if (_videoUnlockCB == null)
-            _videoUnlockCB = new MediaPlayer.VideoUnlockCB(VideoUnlockCallBack);
-        if (_videoDisplayCB == null)
-            _videoDisplayCB = new MediaPlayer.VideoDisplayCB(VideoDiplayCallBack);
+        _videoLockCB += VideoLockCallBack;
+
+        _videoUnlockCB += VideoUnlockCallBack;
+
+        _videoDisplayCB += VideoDiplayCallBack;
 
         texture = new Texture2D(1024, 576, TextureFormat.RGBA32, false);
         mat.mainTexture = texture;
@@ -70,26 +67,22 @@ public class Test : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    { 
+    {
         if (Islock())
         {
             texture.LoadRawTextureData(_buff, _buff.ToInt32());
             texture.Apply();
-        } 
+        }
     }
-    
+
     private void OnGUI()
     {
         if (GUI.Button(new Rect(0, 0, 100, 100), "Take"))
-        {
-            //Loom.RunAsync(() =>
-            //{
-            //vlc截图未解决 用Unity保存帧图，画面是上下反转的
-            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg",1024,576));
-             
-            byte [] bs = texture.EncodeToJPG();
-            File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
-            //});
+        { 
+            //vlc截图未解决 用Unity保存帧图，画面是上下反转左右反转的
+            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg",1024,576)); 
+            byte[] bs = texture.EncodeToJPG();
+            File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs); 
         }
 
     }
@@ -97,27 +90,19 @@ public class Test : MonoBehaviour
     private IntPtr VideoLockCallBack(IntPtr opaque, IntPtr planes)
     {
         Lock();
-        Marshal.WriteIntPtr(planes, _buff);//初始化 
-        //Debug.Log("Lock");
+        //初始化  
+        Marshal.WriteIntPtr(planes, _buff);
         return IntPtr.Zero;
     }
     private void VideoUnlockCallBack(IntPtr opaque, IntPtr picture, IntPtr planes)
     {
-        Unlock();
-        //Debug.Log("Unlock");
+        Unlock(); 
     }
     private void VideoDiplayCallBack(IntPtr opaque, IntPtr picture)
-    {
-        if (Islock())
-        {
-            //Debug.Log("Islock");
-            //texture.LoadRawTextureData(picture, picture.ToInt32());
-            //texture.Apply();
-            //fwrite(buffer, sizeof buffer, 1, fp);  
-        }
+    { 
+
     }
-
-
+    
     bool obj = false;
     private void Lock()
     {
@@ -144,8 +129,6 @@ public class Test : MonoBehaviour
     {
         try
         {
-            Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
-
             if (MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t))
             {
                 MediaPlayer.MediaPlayer_Stop(libvlc_media_player_t);

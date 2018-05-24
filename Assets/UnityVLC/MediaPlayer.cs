@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
-using System.Security;
-using System.IO;
+using System.Security; 
 using System.Threading;
 
 namespace Net.Media
@@ -22,9 +21,27 @@ namespace Net.Media
             public IntPtr[] pointers;
         }
 
-        //vlc库启动参数配置
-        //private static string pluginPath = System.Environment.CurrentDirectory + "\\Plugins\\VLC\\plugins\\";
+        internal enum libvlc_track_type_t
+        {
+            libvlc_track_unknown,
+            libvlc_track_audio,
+            libvlc_track_video,
+            libvlc_track_text 
+        }
 
+        internal struct libvlc_media_track_t
+        {
+            public UInt32 i_codec;
+            public UInt32 i_original_fourcc;
+            public int i_id;
+            public libvlc_track_type_t i_type;
+            public int i_profile;
+            public int i_level; 
+        }
+
+        /// <summary>
+        /// vlc库启动参数配置
+        /// </summary>
         private static string pluginPath = @UnityEngine.Application.dataPath + "/Plugins/";
         
         private static string plugin_arg = "--plugin-path=" + pluginPath;
@@ -270,9 +287,9 @@ namespace Net.Media
             }
         }
 
-        public static void SetFormart(libvlc_media_player_t libvlc_media_player, string formart, int width, int height, int pitch)
+        public static void SetFormart(libvlc_media_player_t libvlc_media_player, string chroma, int width, int height, int pitch)
         {
-            SafeNativeMethods.libvlc_video_set_format(libvlc_media_player, StrToIntPtr(formart), width, height, pitch);
+            SafeNativeMethods.libvlc_video_set_format(libvlc_media_player, StrToIntPtr(chroma), width, height, pitch);
         }
 
         public static int GetMediaWidth(libvlc_media_player_t libvlc_media_player)
@@ -288,9 +305,7 @@ namespace Net.Media
             UnityEngine.Debug.Log("height: " + height);
             return height;
         }
-
-
-
+         
         /// <summary>
         /// 暂停或恢复视频
         /// </summary>
@@ -619,15 +634,7 @@ namespace Net.Media
         }
 
         #endregion
-
-
-        public delegate IntPtr VideoLockCB(IntPtr opaque, IntPtr planes);
-        public delegate void VideoUnlockCB(IntPtr opaque, IntPtr picture, IntPtr planes);
-        //显示图片
-        public delegate void VideoDisplayCB(IntPtr opaque, IntPtr picture);
-
-
-
+         
         #region 私有函数
         //将string []转换为IntPtr
         public static IntPtr StrToIntPtr(string[] args)
@@ -726,24 +733,17 @@ namespace Net.Media
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_player_set_media(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
 
+            //获取播放信息
+            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+            internal static extern void libvlc_media_tracks_get(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
+             
             // 设置编码
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, Int32 width, Int32 height, Int32 pitch);
-
-
-
-
-
-           
-
-
+             
             // 视频每一帧的数据信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer,
-                VideoLockCB lockCB,
-                VideoUnlockCB unlockCB,
-                VideoDisplayCB displayCB,
-                IntPtr opaque);
+            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, VideoLockCB lockCB, VideoUnlockCB unlockCB, VideoDisplayCB displayCB, IntPtr opaque);
              
             // 设置图像输出的窗口
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
