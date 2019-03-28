@@ -7,9 +7,9 @@ using UnityEngine;
 public class Test : MonoBehaviour
 {
     //视频宽
-    public int width;
+    public int width = 1024;
     //视频高
-    public int height;
+    public int height = 768;
     public Texture2D texture;
     public Material mat;
     IntPtr libvlc_instance_t;
@@ -20,18 +20,15 @@ public class Test : MonoBehaviour
     private VideoUnlockCB _videoUnlockCB;
     private VideoDisplayCB _videoDisplayCB;
 
-    private const int _width = 1024;
-    private const int _height = 576;
-    private const int _pixelBytes = 4;
-    private const int _pitch = 1024 * _pixelBytes;
+    private int _pixelBytes = 4;
+    private int _pitch;
     private IntPtr _buff = IntPtr.Zero;
-
     bool ready = false;
 
     string snapShotpath;
     // Use this for initialization
     void Start()
-    { 
+    {
         snapShotpath = "file:///" + Application.streamingAssetsPath;
 
         _videoLockCB += VideoLockCallBack;
@@ -40,33 +37,44 @@ public class Test : MonoBehaviour
 
         _videoDisplayCB += VideoDiplayCallBack;
 
-        texture = new Texture2D(1024, 576, TextureFormat.RGBA32, false);
-        mat.mainTexture = texture;
-        _buff = Marshal.AllocHGlobal(_pitch * _height);
+
         handle = new IntPtr(1);
 
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
 
         libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
-
-        MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
-
         //"file:///"+Application.streamingAssetsPath+"/test.mp4");rtmp://live.hkstv.hk.lxdns.com/live/hks
         //bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtsp://127.0.0.1:8554/1");
-        ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtmp://live.hkstv.hk.lxdns.com/live/hks");
-        Debug.Log(ready);
-
+        //string videoPath = "rtsp://localhost:8554/123";
+        string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
+        bool state = MediaPlayer.SetLocation(libvlc_instance_t, libvlc_media_player_t, videoPath);
+        Debug.Log("state:" + state);
         width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
+        Debug.Log("width: " + width);
         height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
-        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB", _width, _height, _width * 4);
+        Debug.Log("height: " + height);
+        _pitch = width * _pixelBytes;
+        _buff = Marshal.AllocHGlobal(_pitch * height);
+        texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        mat.mainTexture = texture;
+
+        MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
+        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB", width, height, _pitch);
+
+        ready = MediaPlayer.MediaPlayer_Play(libvlc_media_player_t);
+        Debug.Log("ready:" + ready);
 
         Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
-        Debug.Log(Application.dataPath);
     }
 
 
     // Update is called once per frame
     void Update()
+    {
+        
+    }
+
+    private void FixedUpdate()
     {
         if (Islock())
         {
@@ -78,11 +86,13 @@ public class Test : MonoBehaviour
     private void OnGUI()
     {
         if (GUI.Button(new Rect(0, 0, 100, 100), "Take"))
-        { 
+        {
+            Debug.Log("snapShotpath:" + snapShotpath);
+            Debug.Log("@snapShotpath:" + @snapShotpath);
             //vlc截图未解决 用Unity保存帧图，画面是上下反转左右反转的
-            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg",1024,576)); 
+            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg", width, height));
             byte[] bs = texture.EncodeToJPG();
-            File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs); 
+            File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
         }
 
     }
@@ -90,19 +100,21 @@ public class Test : MonoBehaviour
     private IntPtr VideoLockCallBack(IntPtr opaque, IntPtr planes)
     {
         Lock();
-        //初始化  
-        Marshal.WriteIntPtr(planes, _buff);
+        unsafe
+        {
+            Marshal.WriteIntPtr(planes, 0, _buff); 
+        } 
         return IntPtr.Zero;
     }
     private void VideoUnlockCallBack(IntPtr opaque, IntPtr picture, IntPtr planes)
     {
-        Unlock(); 
+        Unlock();
     }
     private void VideoDiplayCallBack(IntPtr opaque, IntPtr picture)
-    { 
+    {
 
     }
-    
+
     bool obj = false;
     private void Lock()
     {
@@ -122,8 +134,10 @@ public class Test : MonoBehaviour
 
     }
 
-    [DllImport("kernel32.dll", EntryPoint = "RtlMoveMemory")]
-    private static extern void CopyMemory(IntPtr Destination, IntPtr Source, uint Length);
+    private void OnApplicationFocus(bool focus)
+    {
+        
+    }
 
     private void OnApplicationQuit()
     {
@@ -137,6 +151,8 @@ public class Test : MonoBehaviour
             MediaPlayer.Release_MediaPlayer(libvlc_media_player_t);
 
             MediaPlayer.Release_Media_Instance(libvlc_instance_t);
+
+            Marshal.FreeHGlobal(_buff);
         }
         catch (Exception e)
         {

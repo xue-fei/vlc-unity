@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
-using System.Security; 
+using System.Security;
 using System.Threading;
+using System.IO;
 
 namespace Net.Media
 {
     //定义替代变量
-    using libvlc_media_t = System.IntPtr;
-    using libvlc_media_player_t = System.IntPtr;
-    using libvlc_instance_t = System.IntPtr;
+    using libvlc_media_t = IntPtr;
+    using libvlc_media_player_t = IntPtr;
+    using libvlc_instance_t = IntPtr;
 
     public class MediaPlayer
     {
@@ -26,30 +27,31 @@ namespace Net.Media
             libvlc_track_unknown,
             libvlc_track_audio,
             libvlc_track_video,
-            libvlc_track_text 
+            libvlc_track_text
         }
 
         internal struct libvlc_media_track_t
         {
-            public UInt32 i_codec;
-            public UInt32 i_original_fourcc;
+            public uint i_codec;
+            public uint i_original_fourcc;
             public int i_id;
             public libvlc_track_type_t i_type;
             public int i_profile;
-            public int i_level; 
+            public int i_level;
         }
 
         /// <summary>
         /// vlc库启动参数配置
         /// </summary>
         private static string pluginPath = @UnityEngine.Application.dataPath + "/Plugins/";
-        
+
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
-        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/test.flv}}";
+        //private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/test.flv}}";
         //    + "--vout-filter=transform,--transform-type=hflip";
-        //https://www.cnblogs.com/waimai/p/3342739.html
-        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg , program_arg };
+        //https://www.cnblogs.com/waimai/p/3342739.html  , program_arg
+        private static string program_arg = "--network-caching=1000";
+        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg, program_arg };
 
         #region 结构体
         public struct libvlc_media_stats_t
@@ -217,13 +219,13 @@ namespace Net.Media
         }
 
         /// <summary>
-        /// 播放网络媒体
+        /// 设置文件路径
         /// </summary>
-        /// <param name="libvlc_instance">VLC 全局变量</param>
-        /// <param name="libvlc_media_player">VLC MediaPlayer变量</param>
-        /// <param name="url">网络视频URL，支持http、rtp、udp等格式的URL播放</param>
+        /// <param name="libvlc_instance"></param>
+        /// <param name="libvlc_media_player"></param>
+        /// <param name="url"></param>
         /// <returns></returns>
-        public static bool NetWork_Media_Play(libvlc_instance_t libvlc_instance, libvlc_media_player_t libvlc_media_player, string url)
+        public static bool SetLocation(libvlc_instance_t libvlc_instance, libvlc_media_player_t libvlc_media_player, string url)
         {
             IntPtr pMrl = IntPtr.Zero;
             libvlc_media_t libvlc_media = IntPtr.Zero;
@@ -262,14 +264,6 @@ namespace Net.Media
 
                 //释放libvlc_media资源
                 SafeNativeMethods.libvlc_media_release(libvlc_media);
-                libvlc_media = IntPtr.Zero;
-                if (0 != SafeNativeMethods.libvlc_media_player_play(libvlc_media_player))
-                {
-                    return false;
-                }
-
-                //休眠指定时间
-                Thread.Sleep(500);
 
                 return true;
             }
@@ -287,6 +281,39 @@ namespace Net.Media
             }
         }
 
+        /// <summary>
+        /// 播放
+        /// </summary>
+        /// <param name="libvlc_instance">VLC 全局变量</param>
+        /// <param name="libvlc_media_player">VLC MediaPlayer变量</param>
+        /// <param name="url">网络视频URL，支持http、rtp、udp等格式的URL播放</param>
+        /// <returns></returns>
+        public static bool MediaPlayer_Play(libvlc_media_player_t libvlc_media_player)
+        {
+            try
+            {
+                if (libvlc_media_player == IntPtr.Zero || libvlc_media_player == null)
+                {
+                    return false;
+                }
+
+                if (0 != SafeNativeMethods.libvlc_media_player_play(libvlc_media_player))
+                {
+                    return false;
+                }
+
+                //休眠指定时间
+                Thread.Sleep(500);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message);
+                return false;
+            }
+        }
+
         public static void SetFormart(libvlc_media_player_t libvlc_media_player, string chroma, int width, int height, int pitch)
         {
             SafeNativeMethods.libvlc_video_set_format(libvlc_media_player, StrToIntPtr(chroma), width, height, pitch);
@@ -295,17 +322,15 @@ namespace Net.Media
         public static int GetMediaWidth(libvlc_media_player_t libvlc_media_player)
         {
             int width = SafeNativeMethods.libvlc_video_get_width(libvlc_media_player);
-            UnityEngine.Debug.Log("width: " + width);
             return width;
         }
 
         public static int GetMediaHeight(libvlc_media_player_t libvlc_media_player)
         {
             int height = SafeNativeMethods.libvlc_video_get_height(libvlc_media_player);
-            UnityEngine.Debug.Log("height: " + height);
             return height;
         }
-         
+
         /// <summary>
         /// 暂停或恢复视频
         /// </summary>
@@ -485,7 +510,7 @@ namespace Net.Media
         /// <param name="path">快照要存放的路径</param>
         /// <param name="name">快照保存的文件名称</param>
         /// <returns></returns>
-        public static bool TakeSnapShot(libvlc_media_player_t libvlc_media_player, string path, string name,int width,int height)
+        public static bool TakeSnapShot(libvlc_media_player_t libvlc_media_player, string path, string name, int width, int height)
         {
             try
             {
@@ -496,15 +521,15 @@ namespace Net.Media
                 {
                     UnityEngine.Debug.LogError("HERE1");
                     return false;
-                } 
+                }
 
-                snap_shot_path = path + "/"+  name;
-                snap_shot_path = snap_shot_path.Replace('/','\\');
-                snap_shot_path = "D:\\111.jpg";
-                UnityEngine.Debug.LogError("snap_shot_path:"+ snap_shot_path);
+                snap_shot_path = path + "\\" + name;
+                snap_shot_path = snap_shot_path.Replace('/', '\\');
+                //snap_shot_path = @"D:\\1.jpg";
+                UnityEngine.Debug.LogError("snap_shot_path:" + snap_shot_path);
 
-                int code = SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), width, height);
-                UnityEngine.Debug.LogError("code:"+ code);
+                int code = SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), 0, 0);
+                UnityEngine.Debug.LogError("code:" + code);
                 if (0 == code)
                 {
                     UnityEngine.Debug.LogError("HERE2");
@@ -620,7 +645,15 @@ namespace Net.Media
             }
         }
 
-        public static void SetCallbacks(libvlc_media_player_t libvlc_media_player,VideoLockCB lockcb,VideoUnlockCB unlockcb, VideoDisplayCB displaycb, IntPtr opaque)
+        /// <summary>
+        /// 设置回调
+        /// </summary>
+        /// <param name="libvlc_media_player"></param>
+        /// <param name="lockcb"></param>
+        /// <param name="unlockcb"></param>
+        /// <param name="displaycb"></param>
+        /// <param name="opaque"></param>
+        public static void SetCallbacks(libvlc_media_player_t libvlc_media_player, VideoLockCB lockcb, VideoUnlockCB unlockcb, VideoDisplayCB displaycb, IntPtr opaque)
         {
             try
             {
@@ -629,12 +662,12 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message); 
+                UnityEngine.Debug.LogError(e.Message);
             }
         }
 
         #endregion
-         
+
         #region 私有函数
         //将string []转换为IntPtr
         public static IntPtr StrToIntPtr(string[] args)
@@ -736,15 +769,15 @@ namespace Net.Media
             //获取播放信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_tracks_get(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
-             
+
             // 设置编码
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, Int32 width, Int32 height, Int32 pitch);
-             
+
             // 视频每一帧的数据信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, VideoLockCB lockCB, VideoUnlockCB unlockCB, VideoDisplayCB displayCB, IntPtr opaque);
-             
+
             // 设置图像输出的窗口
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_player_set_hwnd(libvlc_media_player_t libvlc_mediaplayer, Int32 drawable);
