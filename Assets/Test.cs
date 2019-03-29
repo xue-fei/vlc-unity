@@ -45,9 +45,9 @@ public class Test : MonoBehaviour
 
         libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
         //湖南卫视直播地址
-        //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
+        string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
         //本地视频地址
-        string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
+        //string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
         bool state = MediaPlayer.SetLocation(libvlc_instance_t, libvlc_media_player_t, videoPath);
         Debug.Log("state:" + state);
         width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
@@ -157,9 +157,7 @@ public class Test : MonoBehaviour
 
             MediaPlayer.Release_MediaPlayer(libvlc_media_player_t);
 
-            MediaPlayer.Release_Media_Instance(libvlc_instance_t);
-
-            Marshal.FreeHGlobal(_buff);
+            MediaPlayer.Release_Media_Instance(libvlc_instance_t); 
         }
         catch (Exception e)
         {
