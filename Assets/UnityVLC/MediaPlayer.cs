@@ -50,8 +50,8 @@ namespace Net.Media
         //private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/test.flv}}";
         //    + "--vout-filter=transform,--transform-type=hflip";
         //https://www.cnblogs.com/waimai/p/3342739.html  , program_arg
-        private static string program_arg = "--network-caching=1000";
-        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg, program_arg };
+        //private static string program_arg = "--network-caching=1000"; 
+        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg };
 
         #region 结构体
         public struct libvlc_media_stats_t

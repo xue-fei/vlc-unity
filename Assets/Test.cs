@@ -29,6 +29,7 @@ public class Test : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Loom.Initialize();
         snapShotpath = "file:///" + Application.streamingAssetsPath;
 
         _videoLockCB += VideoLockCallBack;
@@ -43,9 +44,9 @@ public class Test : MonoBehaviour
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
 
         libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
-        //"file:///"+Application.streamingAssetsPath+"/test.mp4");rtmp://live.hkstv.hk.lxdns.com/live/hks
-        //bool ready = MediaPlayer.NetWork_Media_Play(libvlc_instance_t, libvlc_media_player_t, "rtsp://127.0.0.1:8554/1");
-        //string videoPath = "rtsp://localhost:8554/123";
+        //湖南卫视直播地址
+        //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
+        //本地视频地址
         string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
         bool state = MediaPlayer.SetLocation(libvlc_instance_t, libvlc_media_player_t, videoPath);
         Debug.Log("state:" + state);
@@ -53,6 +54,12 @@ public class Test : MonoBehaviour
         Debug.Log("width: " + width);
         height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
         Debug.Log("height: " + height);
+        //网络地址不晓得怎么拿到视频宽高
+        if(width==0&&height==0)
+        {
+            width = 1024;
+            height = 576;
+        }
         _pitch = width * _pixelBytes;
         _buff = Marshal.AllocHGlobal(_pitch * height);
         texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
@@ -71,16 +78,12 @@ public class Test : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private void FixedUpdate()
     {
-        if (Islock())
-        {
-            texture.LoadRawTextureData(_buff, _buff.ToInt32());
-            texture.Apply();
-        }
+
     }
 
     private void OnGUI()
@@ -99,22 +102,26 @@ public class Test : MonoBehaviour
 
     private IntPtr VideoLockCallBack(IntPtr opaque, IntPtr planes)
     {
-        Lock();
-        unsafe
+        Lock(); 
+        Marshal.WriteIntPtr(planes, 0, _buff);
+        Loom.QueueOnMainThread(() =>
         {
-            Marshal.WriteIntPtr(planes, 0, _buff); 
-        } 
+            texture.LoadRawTextureData(_buff, _buff.ToInt32());
+            texture.Apply();
+        });
         return IntPtr.Zero;
     }
+
+    private void VideoDiplayCallBack(IntPtr opaque, IntPtr picture)
+    { 
+        
+    }
+
     private void VideoUnlockCallBack(IntPtr opaque, IntPtr picture, IntPtr planes)
-    {
+    { 
         Unlock();
     }
-    private void VideoDiplayCallBack(IntPtr opaque, IntPtr picture)
-    {
-
-    }
-
+     
     bool obj = false;
     private void Lock()
     {
@@ -136,7 +143,7 @@ public class Test : MonoBehaviour
 
     private void OnApplicationFocus(bool focus)
     {
-        
+
     }
 
     private void OnApplicationQuit()
