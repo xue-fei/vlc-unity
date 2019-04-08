@@ -43,15 +43,25 @@ namespace Net.Media
         /// <summary>
         /// vlc库启动参数配置
         /// </summary>
-        private static string pluginPath = @UnityEngine.Application.dataPath + "/Plugins/";
+        private static string pluginPath = @UnityEngine.Application.streamingAssetsPath + "/plugins/";
 
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
-        //private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/test.flv}}";
+        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/record.flv}}";
         //    + "--vout-filter=transform,--transform-type=hflip";
         //https://www.cnblogs.com/waimai/p/3342739.html  , program_arg
         //private static string program_arg = "--network-caching=1000"; 
-        private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg };
+        //private static string[] arguments = { "-I", "dummy", "--no-ignore-config", "--no-video-title", plugin_arg }; , "--avcodec-hw=any"
+        private static string[] arguments = {
+            "-I",
+            "dummy",
+            "--no-ignore-config",
+            "--no-video-title",
+            "--verbose=4",
+            "--ffmpeg-hw",
+            "--avcodec-hw=any",
+            //plugin_arg
+        };
 
         #region 结构体
         public struct libvlc_media_stats_t
@@ -156,16 +166,14 @@ namespace Net.Media
         /// <param name="libvlc_instance">VLC 全局变量</param>
         /// <param name="handle">VLC MediaPlayer需要绑定显示的窗体句柄</param>
         /// <returns></returns>
-        public static libvlc_media_player_t Create_MediaPlayer(libvlc_instance_t libvlc_instance, IntPtr handle)
+        public static libvlc_media_player_t Create_MediaPlayer(libvlc_instance_t libvlc_instance)
         {
             libvlc_media_player_t libvlc_media_player = IntPtr.Zero;
 
             try
             {
                 if (libvlc_instance == IntPtr.Zero ||
-                    libvlc_instance == null ||
-                    handle == IntPtr.Zero ||
-                    handle == null)
+                    libvlc_instance == null)
                 {
                     return IntPtr.Zero;
                 }
@@ -249,6 +257,13 @@ namespace Net.Media
 
                 //播放网络文件
                 libvlc_media = SafeNativeMethods.libvlc_media_new_location(libvlc_instance, pMrl);
+              
+                string[] arguments = 
+                { 
+                    "--avcodec-hw=any",
+                    "--spect-show-original",
+                "--avcodec-threads=124"};
+                AddOption(libvlc_media, arguments);
 
                 if (libvlc_media == null || libvlc_media == IntPtr.Zero)
                 {
@@ -279,6 +294,17 @@ namespace Net.Media
 
                 return false;
             }
+        }
+
+        public static void AddOption(libvlc_media_player_t libvlc_media_player, string[] arguments)
+        {
+            for(int i=0;i<arguments.Length;i++)
+            {
+                IntPtr pMrl = Marshal.StringToHGlobalAnsi(arguments[i]);
+                SafeNativeMethods.libvlc_media_add_option(libvlc_media_player, pMrl);
+                Marshal.FreeHGlobal(pMrl);
+            }
+            
         }
 
         /// <summary>
@@ -677,7 +703,7 @@ namespace Net.Media
                 IntPtr ip_args = IntPtr.Zero;
 
                 PointerToArrayOfPointerHelper argv = new PointerToArrayOfPointerHelper();
-                argv.pointers = new IntPtr[11];
+                argv.pointers = new IntPtr[args.Length];
 
                 for (int i = 0; i < args.Length; i++)
                 {
@@ -765,6 +791,10 @@ namespace Net.Media
             // 将视频(libvlc_media)绑定到播放器上
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern void libvlc_media_player_set_media(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
+
+            // 参数设置
+            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+            internal static extern void libvlc_media_add_option(libvlc_media_player_t libvlc_media_player, IntPtr options);
 
             //获取播放信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

@@ -1,8 +1,10 @@
 ﻿using Net.Media;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class Test : MonoBehaviour
 {
@@ -14,7 +16,6 @@ public class Test : MonoBehaviour
     public Material mat;
     IntPtr libvlc_instance_t;
     IntPtr libvlc_media_player_t;
-    IntPtr handle;
 
     private VideoLockCB _videoLockCB;
     private VideoUnlockCB _videoUnlockCB;
@@ -29,6 +30,7 @@ public class Test : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Application.targetFrameRate = 30;
         Loom.Initialize();
         snapShotpath = "file:///" + Application.streamingAssetsPath;
 
@@ -38,31 +40,30 @@ public class Test : MonoBehaviour
 
         _videoDisplayCB += VideoDiplayCallBack;
 
-
-        handle = new IntPtr(1);
-
         libvlc_instance_t = MediaPlayer.Create_Media_Instance();
 
-        libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t, handle);
+        libvlc_media_player_t = MediaPlayer.Create_MediaPlayer(libvlc_instance_t);
         //湖南卫视直播地址
-        string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
+        //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
         //本地视频地址
-        //string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
+        string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
         bool state = MediaPlayer.SetLocation(libvlc_instance_t, libvlc_media_player_t, videoPath);
+
         Debug.Log("state:" + state);
         width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
         Debug.Log("width: " + width);
         height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
         Debug.Log("height: " + height);
         //网络地址不晓得怎么拿到视频宽高
-        if(width==0&&height==0)
+        if (width == 0 && height == 0)
         {
             width = 1024;
             height = 576;
         }
         _pitch = width * _pixelBytes;
-        _buff = Marshal.AllocHGlobal(_pitch * height);
-        texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        _buff = Marshal.AllocHGlobal(height * _pitch);
+        texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
+
         mat.mainTexture = texture;
 
         MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
@@ -70,20 +71,12 @@ public class Test : MonoBehaviour
 
         ready = MediaPlayer.MediaPlayer_Play(libvlc_media_player_t);
         Debug.Log("ready:" + ready);
-
+        string[] arguments = { "--avcodec-hw=any",
+            //"--spect-show-original",
+            // "--avcodec-threads=124"
+        };
+        //MediaPlayer.AddOption(libvlc_media_player_t, arguments);
         Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
-    }
-
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    private void FixedUpdate()
-    {
-
     }
 
     private void OnGUI()
@@ -97,31 +90,37 @@ public class Test : MonoBehaviour
             byte[] bs = texture.EncodeToJPG();
             File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
         }
-
     }
 
     private IntPtr VideoLockCallBack(IntPtr opaque, IntPtr planes)
     {
-        Lock(); 
+        Lock();
         Marshal.WriteIntPtr(planes, 0, _buff);
         Loom.QueueOnMainThread(() =>
         {
+            //Stopwatch stopwatch = new Stopwatch();
+            //stopwatch.Start();
+
             texture.LoadRawTextureData(_buff, _buff.ToInt32());
             texture.Apply();
+
+            //stopwatch.Stop();
+            //TimeSpan timespan = stopwatch.Elapsed;
+            //Debug.Log(timespan.TotalMilliseconds);
         });
         return IntPtr.Zero;
     }
 
     private void VideoDiplayCallBack(IntPtr opaque, IntPtr picture)
-    { 
-        
+    {
+
     }
 
     private void VideoUnlockCallBack(IntPtr opaque, IntPtr picture, IntPtr planes)
-    { 
+    {
         Unlock();
     }
-     
+
     bool obj = false;
     private void Lock()
     {
@@ -157,7 +156,9 @@ public class Test : MonoBehaviour
 
             MediaPlayer.Release_MediaPlayer(libvlc_media_player_t);
 
-            MediaPlayer.Release_Media_Instance(libvlc_instance_t); 
+            MediaPlayer.Release_Media_Instance(libvlc_instance_t);
+
+            GC.Collect();
         }
         catch (Exception e)
         {
