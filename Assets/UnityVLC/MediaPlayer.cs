@@ -802,7 +802,7 @@ namespace Net.Media
 
             // 设置编码
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, Int32 width, Int32 height, Int32 pitch);
+            internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, int width, int height, int pitch);
 
             // 视频每一帧的数据信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

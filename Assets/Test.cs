@@ -1,6 +1,5 @@
 ﻿using Net.Media;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -12,8 +11,9 @@ public class Test : MonoBehaviour
     public int width = 1024;
     //视频高
     public int height = 768;
-    public Texture2D texture;
-    public Material mat;
+    public Texture2D m_texture;
+    public Material matVideo;
+
     IntPtr libvlc_instance_t;
     IntPtr libvlc_media_player_t;
 
@@ -21,7 +21,7 @@ public class Test : MonoBehaviour
     private VideoUnlockCB _videoUnlockCB;
     private VideoDisplayCB _videoDisplayCB;
 
-    private int _pixelBytes = 4;
+    private int _pixelBytes = 2;
     private int _pitch;
     private IntPtr _buff = IntPtr.Zero;
     bool ready = false;
@@ -60,14 +60,15 @@ public class Test : MonoBehaviour
             width = 1024;
             height = 576;
         }
+        m_texture = new Texture2D(width, height, TextureFormat.YUY2, false);
+        Debug.Log(m_texture.GetRawTextureData().Length);
         _pitch = width * _pixelBytes;
         _buff = Marshal.AllocHGlobal(height * _pitch);
-        texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
-
-        mat.mainTexture = texture;
+         
+        matVideo.mainTexture = m_texture;
 
         MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
-        MediaPlayer.SetFormart(libvlc_media_player_t, "ARGB", width, height, _pitch);
+        MediaPlayer.SetFormart(libvlc_media_player_t, "YUY2", width, height, _pitch);
 
         ready = MediaPlayer.MediaPlayer_Play(libvlc_media_player_t);
         Debug.Log("ready:" + ready);
@@ -87,7 +88,7 @@ public class Test : MonoBehaviour
             Debug.Log("@snapShotpath:" + @snapShotpath);
             //vlc截图未解决 用Unity保存帧图，画面是上下反转左右反转的
             //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg", width, height));
-            byte[] bs = texture.EncodeToJPG();
+            byte[] bs = m_texture.EncodeToJPG();
             File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
         }
     }
@@ -101,8 +102,8 @@ public class Test : MonoBehaviour
             //Stopwatch stopwatch = new Stopwatch();
             //stopwatch.Start();
 
-            texture.LoadRawTextureData(_buff, _buff.ToInt32());
-            texture.Apply();
+            m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
+            m_texture.Apply();
 
             //stopwatch.Stop();
             //TimeSpan timespan = stopwatch.Elapsed;
