@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 public class Test : MonoBehaviour
@@ -11,9 +13,12 @@ public class Test : MonoBehaviour
     public int width = 1024;
     //视频高
     public int height = 768;
+    public float length = 0;
+
     public Texture2D m_texture;
     public Material matVideo;
-
+    public Slider slider;
+    public Text text;
     IntPtr libvlc_instance_t;
     IntPtr libvlc_media_player_t;
 
@@ -21,10 +26,9 @@ public class Test : MonoBehaviour
     private VideoUnlockCB _videoUnlockCB;
     private VideoDisplayCB _videoDisplayCB;
 
-    private int _pixelBytes = 2;
+    private int _pixelBytes = 3;
     private int _pitch;
     private IntPtr _buff = IntPtr.Zero;
-    bool ready = false;
 
     string snapShotpath;
     // Use this for initialization
@@ -48,36 +52,39 @@ public class Test : MonoBehaviour
         //本地视频地址
         string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
         bool state = MediaPlayer.SetLocation(libvlc_instance_t, libvlc_media_player_t, videoPath);
-
         Debug.Log("state:" + state);
         width = MediaPlayer.GetMediaWidth(libvlc_media_player_t);
         Debug.Log("width: " + width);
         height = MediaPlayer.GetMediaHeight(libvlc_media_player_t);
         Debug.Log("height: " + height);
+        length = MediaPlayer.GetMediaLength(libvlc_media_player_t);
+        Debug.Log("length: " + length);
         //网络地址不晓得怎么拿到视频宽高
         if (width == 0 && height == 0)
         {
             width = 1024;
             height = 576;
         }
-        m_texture = new Texture2D(width, height, TextureFormat.YUY2, false);
+        m_texture = new Texture2D(width, height, TextureFormat.RGB24, false);
         Debug.Log(m_texture.GetRawTextureData().Length);
         _pitch = width * _pixelBytes;
         _buff = Marshal.AllocHGlobal(height * _pitch);
-         
+
         matVideo.mainTexture = m_texture;
 
         MediaPlayer.SetCallbacks(libvlc_media_player_t, _videoLockCB, _videoUnlockCB, _videoDisplayCB, IntPtr.Zero);
-        MediaPlayer.SetFormart(libvlc_media_player_t, "YUY2", width, height, _pitch);
+        MediaPlayer.SetFormart(libvlc_media_player_t, "RV24", width, height, _pitch);
 
-        ready = MediaPlayer.MediaPlayer_Play(libvlc_media_player_t);
+        bool ready = MediaPlayer.MediaPlayer_Play(libvlc_media_player_t);
         Debug.Log("ready:" + ready);
-        string[] arguments = { "--avcodec-hw=any",
-            //"--spect-show-original",
-            // "--avcodec-threads=124"
-        };
-        //MediaPlayer.AddOption(libvlc_media_player_t, arguments);
-        Debug.Log(MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t));
+        bool isPlaying = MediaPlayer.MediaPlayer_IsPlaying(libvlc_media_player_t);
+        Debug.Log("isPlaying:" + isPlaying); 
+        slider.onValueChanged.AddListener(ChangValue);
+    }
+
+    private void OnDrag(PointerEventData obj)
+    {
+        throw new NotImplementedException();
     }
 
     private void OnGUI()
@@ -86,8 +93,6 @@ public class Test : MonoBehaviour
         {
             Debug.Log("snapShotpath:" + snapShotpath);
             Debug.Log("@snapShotpath:" + @snapShotpath);
-            //vlc截图未解决 用Unity保存帧图，画面是上下反转左右反转的
-            //Debug.Log(MediaPlayer.TakeSnapShot(libvlc_media_player_t, snapShotpath, "testa.jpg", width, height));
             byte[] bs = m_texture.EncodeToJPG();
             File.WriteAllBytes(Application.streamingAssetsPath + "/test.jpg", bs);
         }
@@ -99,15 +104,9 @@ public class Test : MonoBehaviour
         Marshal.WriteIntPtr(planes, 0, _buff);
         Loom.QueueOnMainThread(() =>
         {
-            //Stopwatch stopwatch = new Stopwatch();
-            //stopwatch.Start();
-
             m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
             m_texture.Apply();
-
-            //stopwatch.Stop();
-            //TimeSpan timespan = stopwatch.Elapsed;
-            //Debug.Log(timespan.TotalMilliseconds);
+            GetProgress();
         });
         return IntPtr.Zero;
     }
@@ -136,12 +135,21 @@ public class Test : MonoBehaviour
         return obj;
     }
 
-    private void OnDestroy()
+    long len;
+    private void ChangValue(float value)
     {
-
+        MediaPlayer.SetPosition(libvlc_media_player_t, value);
+        text.text = GetHMS((int)(length*value));
     }
 
-    private void OnApplicationFocus(bool focus)
+    private void GetProgress()
+    {
+        len = MediaPlayer.GetPosition(libvlc_media_player_t);
+        text.text = GetHMS((int)len);
+        slider.value = len / length;
+    }
+
+    private void OnDestroy()
     {
 
     }
@@ -165,5 +173,13 @@ public class Test : MonoBehaviour
         {
             Debug.Log(e.Message);
         }
+    }
+
+    string GetHMS(int l)
+    {
+        TimeSpan ts = new TimeSpan(0, 0, 0, 0, l);
+
+        return (ts.Hours.ToString("00") + ":" + ts.Minutes.ToString("00") + ":"
+                + ts.Seconds.ToString("00"));
     }
 }

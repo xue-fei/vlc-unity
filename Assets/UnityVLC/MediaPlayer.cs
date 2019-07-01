@@ -11,6 +11,7 @@ namespace Net.Media
     using libvlc_media_t = IntPtr;
     using libvlc_media_player_t = IntPtr;
     using libvlc_instance_t = IntPtr;
+    using Debug = UnityEngine.Debug;
 
     public class MediaPlayer
     {
@@ -59,8 +60,9 @@ namespace Net.Media
             "--no-video-title",
             "--verbose=4",
             "--ffmpeg-hw",
-            "--avcodec-hw=any",
-            //plugin_arg
+            "--video-filter=transform",
+            "--transform-type=hflip",
+            "--transform-type=vflip"
         };
 
         #region 结构体
@@ -221,7 +223,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 libvlc_media_player = IntPtr.Zero;
             }
         }
@@ -248,7 +250,7 @@ namespace Net.Media
                 {
                     return false;
                 }
-                UnityEngine.Debug.Log("url:" + url);
+                Debug.Log("url:" + url);
                 pMrl = StrToIntPtr(url);
                 if (pMrl == null || pMrl == IntPtr.Zero)
                 {
@@ -257,12 +259,16 @@ namespace Net.Media
 
                 //播放网络文件
                 libvlc_media = SafeNativeMethods.libvlc_media_new_location(libvlc_instance, pMrl);
-              
-                string[] arguments = 
-                { 
-                    "--avcodec-hw=any",
-                    "--spect-show-original",
-                "--avcodec-threads=124"};
+
+                string[] arguments =
+                {
+                    //"--avcodec-hw=any",
+                    //"--vout=direct3d11",
+                    //"--directx-use-sysmem",
+                    //"--directx-overlay",
+                    //"--spect-show-original",
+                    //"--avcodec-threads=124"
+                };
                 AddOption(libvlc_media, arguments);
 
                 if (libvlc_media == null || libvlc_media == IntPtr.Zero)
@@ -271,8 +277,8 @@ namespace Net.Media
                 }
 
                 SafeNativeMethods.libvlc_media_parse(libvlc_media);
-                long duration = SafeNativeMethods.libvlc_media_get_duration(libvlc_media);
-                UnityEngine.Debug.Log("duration: " + duration / 1000);
+                //long duration = SafeNativeMethods.libvlc_media_get_duration(libvlc_media);
+                //Debug.Log("视频长度: " + duration / 1000f + "秒");
 
                 //将Media绑定到播放器上
                 SafeNativeMethods.libvlc_media_player_set_media(libvlc_media_player, libvlc_media);
@@ -284,7 +290,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 //释放libvlc_media资源
                 if (libvlc_media != IntPtr.Zero)
                 {
@@ -298,13 +304,13 @@ namespace Net.Media
 
         public static void AddOption(libvlc_media_player_t libvlc_media_player, string[] arguments)
         {
-            for(int i=0;i<arguments.Length;i++)
+            for (int i = 0; i < arguments.Length; i++)
             {
                 IntPtr pMrl = Marshal.StringToHGlobalAnsi(arguments[i]);
                 SafeNativeMethods.libvlc_media_add_option(libvlc_media_player, pMrl);
                 Marshal.FreeHGlobal(pMrl);
             }
-            
+
         }
 
         /// <summary>
@@ -335,7 +341,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -355,6 +361,18 @@ namespace Net.Media
         {
             int height = SafeNativeMethods.libvlc_video_get_height(libvlc_media_player);
             return height;
+        }
+
+        public static long GetMediaLength(libvlc_media_player_t libvlc_media_player)
+        {
+            libvlc_media_t libvlc_media = GetMedia(libvlc_media_player);
+            long length = 0;
+            if (libvlc_media != IntPtr.Zero)
+            {
+                length = SafeNativeMethods.libvlc_media_get_duration(libvlc_media);
+            }
+            SafeNativeMethods.libvlc_media_release(libvlc_media);
+            return length;
         }
 
         /// <summary>
@@ -385,7 +403,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -411,7 +429,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -452,7 +470,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -500,9 +518,19 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
+        }
+
+        public static Int64 GetPosition(libvlc_media_player_t libvlc_media_player)
+        {
+            return SafeNativeMethods.libvlc_media_player_get_time(libvlc_media_player);
+        }
+
+        public static void SetPosition(libvlc_media_player_t libvlc_media_player, float posf)
+        {
+            SafeNativeMethods.libvlc_media_player_set_position(libvlc_media_player, posf);
         }
 
         /// <summary>
@@ -524,7 +552,7 @@ namespace Net.Media
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -545,31 +573,31 @@ namespace Net.Media
                 if (libvlc_media_player == IntPtr.Zero ||
                     libvlc_media_player == null)
                 {
-                    UnityEngine.Debug.LogError("HERE1");
+                    Debug.LogError("HERE1");
                     return false;
                 }
 
                 snap_shot_path = path + "\\" + name;
                 snap_shot_path = snap_shot_path.Replace('/', '\\');
                 //snap_shot_path = @"D:\\1.jpg";
-                UnityEngine.Debug.LogError("snap_shot_path:" + snap_shot_path);
+                Debug.LogError("snap_shot_path:" + snap_shot_path);
 
-                int code = SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 0, snap_shot_path.ToCharArray(), 0, 0);
-                UnityEngine.Debug.LogError("code:" + code);
+                int code = SafeNativeMethods.libvlc_video_take_snapshot(libvlc_media_player, 1, snap_shot_path.ToCharArray(), width, height);
+                Debug.LogError("code:" + code);
                 if (0 == code)
                 {
-                    UnityEngine.Debug.LogError("HERE2");
+                    Debug.LogError("HERE2");
                     return true;
                 }
                 else
                 {
-                    UnityEngine.Debug.LogError("HERE3");
+                    Debug.LogError("HERE3");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
                 return false;
             }
         }
@@ -579,7 +607,7 @@ namespace Net.Media
         /// </summary>
         /// <param name="libvlc_media_player"></param>
         /// <returns></returns>
-        public static bool GetMedia(libvlc_media_player_t libvlc_media_player)
+        public static libvlc_media_t GetMedia(libvlc_media_player_t libvlc_media_player)
         {
             libvlc_media_t media = IntPtr.Zero;
 
@@ -588,23 +616,23 @@ namespace Net.Media
                 if (libvlc_media_player == IntPtr.Zero ||
                     libvlc_media_player == null)
                 {
-                    return false;
+                    return media;
                 }
 
                 media = SafeNativeMethods.libvlc_media_player_get_media(libvlc_media_player);
                 if (media == IntPtr.Zero || media == null)
                 {
-                    return false;
+                    return media;
                 }
                 else
                 {
-                    return true;
+                    return media;
                 }
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
-                return false;
+                Debug.LogError(e.Message);
+                return media;
             }
         }
 
@@ -684,11 +712,11 @@ namespace Net.Media
             try
             {
                 SafeNativeMethods.libvlc_video_set_callbacks(libvlc_media_player, lockcb, unlockcb, displaycb, opaque);
-                UnityEngine.Debug.Log("SetCallbacks");
+                Debug.Log("SetCallbacks");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(e.Message);
+                Debug.LogError(e.Message);
             }
         }
 
@@ -891,6 +919,10 @@ namespace Net.Media
             //获取媒体信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
             internal static extern int libvlc_media_get_stats(libvlc_media_t libvlc_media, ref libvlc_media_stats_t lib_vlc_media_stats);
+
+            //设置播放进度
+            [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+            internal static extern int libvlc_media_player_set_position(libvlc_media_t libvlc_media, float posf);
         }
         #endregion
     }
