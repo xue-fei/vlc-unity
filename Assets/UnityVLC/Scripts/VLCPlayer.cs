@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Text;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
-using System.IO;
+using System.Runtime.InteropServices;
 
-namespace Net.Media
+namespace VLC
 {
     //定义替代变量
     using libvlc_media_t = IntPtr;
@@ -13,7 +12,7 @@ namespace Net.Media
     using libvlc_instance_t = IntPtr;
     using Debug = UnityEngine.Debug;
 
-    public class MediaPlayer
+    public class VLCPlayer
     {
         #region 全局变量
         //数组转换为指针
@@ -310,7 +309,6 @@ namespace Net.Media
                 SafeNativeMethods.libvlc_media_add_option(libvlc_media_player, pMrl);
                 Marshal.FreeHGlobal(pMrl);
             }
-
         }
 
         /// <summary>
@@ -707,7 +705,7 @@ namespace Net.Media
         /// <param name="unlockcb"></param>
         /// <param name="displaycb"></param>
         /// <param name="opaque"></param>
-        public static void SetCallbacks(libvlc_media_player_t libvlc_media_player, VideoLockCB lockcb, VideoUnlockCB unlockcb, VideoDisplayCB displaycb, IntPtr opaque)
+        public static void SetCallbacks(libvlc_media_player_t libvlc_media_player, VideoLock lockcb, VideoUnlock unlockcb, VideoDisplay displaycb, IntPtr opaque)
         {
             try
             {
@@ -834,7 +832,7 @@ namespace Net.Media
 
             // 视频每一帧的数据信息
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, VideoLockCB lockCB, VideoUnlockCB unlockCB, VideoDisplayCB displayCB, IntPtr opaque);
+            internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, VideoLock lockCB, VideoUnlock unlockCB, VideoDisplay displayCB, IntPtr opaque);
 
             // 设置图像输出的窗口
             [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -926,4 +924,8 @@ namespace Net.Media
         }
         #endregion
     }
+
+    public delegate IntPtr VideoLock(IntPtr opaque, IntPtr planes);
+    public delegate void VideoDisplay(IntPtr opaque, IntPtr picture);
+    public delegate void VideoUnlock(IntPtr opaque, IntPtr picture, IntPtr planes);
 }
