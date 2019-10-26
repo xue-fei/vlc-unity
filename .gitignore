@@ -8,5 +8,5 @@ UnityVLC.sln
 Library/
 Temp/
 obj/
-Assets/StreamingAssets/test.mp4
 Assets/StreamingAssets/
+UnityPackageManager/

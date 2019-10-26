@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Security;
-using System.Threading;
 using System.Runtime.InteropServices;
 
 namespace VLC
@@ -47,7 +46,8 @@ namespace VLC
 
         private static string plugin_arg = "--plugin-path=" + pluginPath;
         //用于播放节目时，转录节目
-        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" + @UnityEngine.Application.streamingAssetsPath + "/record.flv}}";
+        private static string program_arg = "--sout=#duplicate{dst=display,dst=std{access=file,mux=flv,dst=" +
+            @UnityEngine.Application.streamingAssetsPath + "/record.flv}}";
         //    + "--vout-filter=transform,--transform-type=hflip";
         //https://www.cnblogs.com/waimai/p/3342739.html  , program_arg
         //private static string program_arg = "--network-caching=1000"; 
@@ -57,11 +57,12 @@ namespace VLC
             "dummy",
             "--no-ignore-config",
             "--no-video-title",
-            "--verbose=4",
-            "--ffmpeg-hw",
+            "--verbose=4", 
+            //"--ffmpeg-hw",
             "--video-filter=transform",
             "--transform-type=hflip",
-            "--transform-type=vflip"
+            "--transform-type=vflip",
+            //plugin_arg
         };
 
         #region 结构体
@@ -261,7 +262,7 @@ namespace VLC
 
                 string[] arguments =
                 {
-                    //"--avcodec-hw=any",
+                    ":avcodec-hw=any", 
                     //"--vout=direct3d11",
                     //"--directx-use-sysmem",
                     //"--directx-overlay",
@@ -333,7 +334,7 @@ namespace VLC
                 }
 
                 //休眠指定时间
-                Thread.Sleep(500);
+                //Thread.Sleep(500);
 
                 return true;
             }

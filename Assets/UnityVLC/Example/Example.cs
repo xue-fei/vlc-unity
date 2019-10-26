@@ -44,7 +44,7 @@ public class Example : MonoBehaviour
 
     private void OnGUI()
     {
-        if (GUI.Button(new Rect(0, 0, 100, 100), "Take"))
+        if (GUI.Button(new Rect(0, 0, 100, 100), "截图"))
         {
             string fileName = DateTime.Now.ToFileTime() + ".jpg";
             unityVLCPlayer.TakeSnapShot(Application.streamingAssetsPath + "/" + fileName);
