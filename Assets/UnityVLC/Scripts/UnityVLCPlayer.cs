@@ -170,17 +170,7 @@ namespace VLC
                 VLCPlayer.MediaPlayer_Stop(_libvlc_media_player_t);
             }
             VLCPlayer.Release_MediaPlayer(_libvlc_media_player_t);
-            VLCPlayer.Release_Media_Instance(_libvlc_instance_t);
-        }
-
-        private void OnApplicationQuit()
-        {
-            if (VLCPlayer.MediaPlayer_IsPlaying(_libvlc_media_player_t))
-            {
-                VLCPlayer.MediaPlayer_Stop(_libvlc_media_player_t);
-            }
-            VLCPlayer.Release_MediaPlayer(_libvlc_media_player_t);
-            VLCPlayer.Release_Media_Instance(_libvlc_instance_t);
-        }
+            VLCPlayer.Release_Media_Instance(_libvlc_instance_t); 
+        } 
     }
 }
