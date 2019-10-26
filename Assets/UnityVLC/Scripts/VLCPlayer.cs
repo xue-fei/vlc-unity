@@ -61,7 +61,7 @@ namespace VLC
             //"--ffmpeg-hw",
             "--video-filter=transform",
             "--transform-type=hflip",
-            "--transform-type=vflip",
+            //"--transform-type=vflip",
             //plugin_arg
         };
 
@@ -263,11 +263,11 @@ namespace VLC
                 string[] arguments =
                 {
                     ":avcodec-hw=any", 
-                    //"--vout=direct3d11",
-                    //"--directx-use-sysmem",
-                    //"--directx-overlay",
-                    //"--spect-show-original",
-                    //"--avcodec-threads=124"
+                    //":vout=direct3d11",
+                    //":directx-use-sysmem",
+                    //":directx-overlay",
+                    //":spect-show-original",
+                    //":avcodec-threads=124"   
                 };
                 AddOption(libvlc_media, arguments);
 
