@@ -119,7 +119,8 @@ namespace VLC
             {
                 m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
                 m_texture.Apply();
-                GetProgress();
+                //获取播放进度写的有问题，会导致播放卡顿回退
+                //GetProgress();
             });
             return IntPtr.Zero;
         }

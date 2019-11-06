@@ -24,7 +24,8 @@ public class Example : MonoBehaviour
         //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
         //本地视频地址
         string videoPath = "file:///" + Application.streamingAssetsPath + "/test.mp4";
-
+        //捕捉屏幕
+        //string videoPath = "screen://";
         unityVLCPlayer.SetLocation(videoPath, matVideo);
         btnStart.onClick.AddListener(delegate ()
         {

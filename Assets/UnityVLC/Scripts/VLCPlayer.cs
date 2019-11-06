@@ -62,7 +62,7 @@ namespace VLC
             "--video-filter=transform",
             "--transform-type=hflip",
             //"--transform-type=vflip",
-            //plugin_arg
+            //plugin_arg 
         };
 
         #region 结构体
@@ -267,7 +267,11 @@ namespace VLC
                     //":directx-use-sysmem",
                     //":directx-overlay",
                     //":spect-show-original",
-                    //":avcodec-threads=124"   
+                    //":avcodec-threads=124" 
+                    //捕捉屏幕的相关参数
+                    //":screen-fps=30",
+                    //":screen-width=1920",
+                    //":screen-width=1080",
                 };
                 AddOption(libvlc_media, arguments);
 
