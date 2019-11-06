@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VLC;
 using Debug = UnityEngine.Debug;
@@ -39,7 +41,13 @@ public class Example : MonoBehaviour
         {
             OnCtrl(btnStop);
         });
-        slider.onValueChanged.AddListener(ChangValue);
+
+        UnityAction<BaseEventData> drag = new UnityAction<BaseEventData>(OnDrag);
+        EventTrigger.Entry myDrag = new EventTrigger.Entry();
+        myDrag.eventID = EventTriggerType.Drag;
+        myDrag.callback.AddListener(drag);
+        EventTrigger eventTrigger = slider.gameObject.AddComponent<EventTrigger>();
+        eventTrigger.triggers.Add(myDrag);
     }
 
     private void OnGUI()
@@ -53,14 +61,13 @@ public class Example : MonoBehaviour
 
     private void OnProgress(float progress, string time)
     {
-        //会触发slider.onValueChanged
-        //slider.value = progress;
+        slider.value = progress;
         text.text = time;
     }
 
-    private void ChangValue(float value)
+    void OnDrag(BaseEventData data)
     {
-        unityVLCPlayer.SetProgress(value);
+        unityVLCPlayer.SetProgress(slider.value);
     }
 
     private void OnCtrl(Button button)

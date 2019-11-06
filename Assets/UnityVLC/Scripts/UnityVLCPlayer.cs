@@ -16,13 +16,22 @@ namespace VLC
         private VideoLock _videoLock;
         private VideoUnlock _videoUnlock;
         private VideoDisplay _videoDisplay;
-        //视频宽
+        /// <summary>
+        /// 视频宽
+        /// </summary>
         private int width = 1024;
-        //视频高
+        /// <summary>
+        /// 视频高
+        /// </summary>
         private int height = 768;
+        /// <summary>
+        /// 视频长度(毫秒)
+        /// </summary>
         private float length = 0;
         private Texture2D m_texture;
-
+        /// <summary>
+        /// 视频播放进度
+        /// </summary>
         public Action<float, string> OnProgress;
 
         public void Init()
@@ -119,8 +128,7 @@ namespace VLC
             {
                 m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
                 m_texture.Apply();
-                //获取播放进度写的有问题，会导致播放卡顿回退
-                //GetProgress();
+                GetProgress();
             });
             return IntPtr.Zero;
         }
@@ -144,7 +152,9 @@ namespace VLC
                 OnProgress(value, time);
             }
         }
-
+        /// <summary>
+        /// 获取播放进度 
+        /// </summary>
         private void GetProgress()
         {
             long len = VLCPlayer.GetPosition(_libvlc_media_player_t);
@@ -164,11 +174,6 @@ namespace VLC
                     + ts.Seconds.ToString("00"));
         }
 
-        private void FixedUpdate()
-        {
-            GetProgress();
-        }
-
         private void OnDestroy()
         {
             if (VLCPlayer.MediaPlayer_IsPlaying(_libvlc_media_player_t))
@@ -176,7 +181,7 @@ namespace VLC
                 VLCPlayer.MediaPlayer_Stop(_libvlc_media_player_t);
             }
             VLCPlayer.Release_MediaPlayer(_libvlc_media_player_t);
-            VLCPlayer.Release_Media_Instance(_libvlc_instance_t); 
-        } 
+            VLCPlayer.Release_Media_Instance(_libvlc_instance_t);
+        }
     }
 }

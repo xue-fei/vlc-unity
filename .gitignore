@@ -10,3 +10,4 @@ Temp/
 obj/
 Assets/StreamingAssets/
 UnityPackageManager/
+UnityVLC.Editor.csproj
