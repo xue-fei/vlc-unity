@@ -164,6 +164,11 @@ namespace VLC
                     + ts.Seconds.ToString("00"));
         }
 
+        private void FixedUpdate()
+        {
+            GetProgress();
+        }
+
         private void OnDestroy()
         {
             if (VLCPlayer.MediaPlayer_IsPlaying(_libvlc_media_player_t))

@@ -39,7 +39,6 @@ public class Example : MonoBehaviour
         {
             OnCtrl(btnStop);
         });
-
         slider.onValueChanged.AddListener(ChangValue);
     }
 
@@ -54,7 +53,8 @@ public class Example : MonoBehaviour
 
     private void OnProgress(float progress, string time)
     {
-        slider.value = progress;
+        //会触发slider.onValueChanged
+        //slider.value = progress;
         text.text = time;
     }
 
