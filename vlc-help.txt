@@ -354,7 +354,7 @@ URL 语法:
                                  为覆盖使用三重缓冲
                                  (默认启用)
           在使用 YUV 覆盖时尝试使用三重缓冲。可获得更高的视频质量 (不闪烁)。
-      --directx-device={,display,\\.\DISPLAY6} 
+      --directx-device={,display,\\.\DISPLAY1,\\.\DISPLAY2} 
                                  指定显示设备名称
           在多显示器配置中您可以指定希望打开视频窗口的显示器的 Windows 设备名称。例如，「\\.\DISPLAY1」或「\\.\DISPLAY2」。
 
@@ -3018,6 +3018,10 @@ URL 语法:
       --sout-avformat-options=<字符串> 
                                  Advanced options
           Advanced options, in the form {opt=val,opt2=val2}.
+      --sout-avformat-reset-ts, --no-sout-avformat-reset-ts 
+                                 Reset timestamps
+                                 (默认禁用)
+          The muxed content will start near a 0 timestamp.
    输入:
       --avio-options=<字符串>       Advanced options
           Advanced options, in the form {opt=val,opt2=val2}.
@@ -3042,7 +3046,7 @@ URL 语法:
           动态范围压缩将使响亮的声音变得柔和，或使柔和的声音变得更响亮，让您可以在不打扰任何人的前提下，在嘈杂环境中轻松聆听音频。如果您禁用动态范围压缩，播放效果将更适合电影院或聆听室。
 
  WaveOut 音频输出 (waveout)
-      --waveout-audio-device={wavemapper,Realtek HD Audio 2nd output (Re ($1,$64),H270 (NVIDIA High Definition Au ($1,$64)} 
+      --waveout-audio-device={wavemapper,Realtek HD Audio 2nd output (Re ($1,$64),H270 (NVIDIA High Definition Au ($1,$64),S24D300 (NVIDIA High Definition ($1,$64),Realtek Digital Output (Realtek ($1,$64)} 
                                  选择音频设备
           选择特殊音频设备，或者由 windows 确定 (默认)，更改需要重新启动 VLC 才能生效。
       --waveout-volume=<浮点 [0.000000 .. 2.000000]> 
@@ -3062,7 +3066,7 @@ URL 语法:
       --mmdevice-passthrough={0 (禁用), 1 (启用 (仅限 AC3/DTS)), 2 (启用)} 
                                  HDMI/SPDIF 音频直通
           若 HDMI 接收设备的 HD 编解码器出现问题，请更改此值。
-      --mmdevice-audio-device={,{0.0.0.00000000}.{211da40e-a079-410d-974e-298b64ebab18},{0.0.0.00000000}.{ca0f5c1d-5083-440b-ab9c-daf783812b02}} 
+      --mmdevice-audio-device={,{0.0.0.00000000}.{33fc18ab-4d06-4795-925d-e335f5a37d19},{0.0.0.00000000}.{7a38acb9-80e1-4932-927c-78a55748144f},{0.0.0.00000000}.{882258d6-8a2c-4737-a67b-e53198585581},{0.0.0.00000000}.{cd49ee24-beb3-43fd-89b3-d8ef3a4a80d8}} 
                                  输出设备
           选择音频输出设备
       --mmdevice-volume=<浮点 [0.000000 .. 1.250000]> 
@@ -3070,7 +3074,7 @@ URL 语法:
           音频音量，单位为千分之分贝 (dB)。
 
  DirectX 音频输出 (directsound)
-      --directx-audio-device={,{211DA40E-A079-410D-974E-298B64EBAB18},{CA0F5C1D-5083-440B-AB9C-DAF783812B02}} 
+      --directx-audio-device={,{7A38ACB9-80E1-4932-927C-78A55748144F},{33FC18AB-4D06-4795-925D-E335F5A37D19},{882258D6-8A2C-4737-A67B-E53198585581},{CD49EE24-BEB3-43FD-89B3-D8EF3A4A80D8}} 
                                  输出设备
           选择音频输出设备
       --directx-audio-float32, --no-directx-audio-float32 
@@ -3821,9 +3825,10 @@ URL 语法:
                                  物理频道
 
  DirectShow 输入 (dshow)
-      --dshow-vdev={,none}       视频设备名称
+      --dshow-vdev={,none,Logitech HD Webcam C310} 
+                                 视频设备名称
           DirectShow 插件使用的视频设备名称。如果您不指定任何设备，则将使用默认的设备。
-      --dshow-adev={,none,立体声混音 (Realtek High Definition Audio),麦克风 (Realtek High Definition Audio)} 
+      --dshow-adev={,none,麦克风 (HD Webcam C310),麦克风 (Realtek High Definition Audio)} 
                                  音频设备名称
           DirectShow 插件使用的音频设备名称。如果您不指定任何设备，则将使用默认的设备。
       --dshow-size=<字符串>         视频大小
