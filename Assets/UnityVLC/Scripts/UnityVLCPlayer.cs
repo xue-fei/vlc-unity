@@ -42,6 +42,7 @@ namespace VLC
             _videoUnlock += OnVideoUnlock;
             _libvlc_instance_t = VLCPlayer.Create_Media_Instance();
             _libvlc_media_player_t = VLCPlayer.Create_MediaPlayer(_libvlc_instance_t);
+            Debug.Log("vlc version:" + VLCPlayer.GetVersion());
         }
 
         /// <summary>
@@ -117,7 +118,12 @@ namespace VLC
         /// </summary>
         public void TakeSnapShot(string filePath)
         {
-            byte[] data = m_texture.EncodeToJPG();
+            Texture2D texture = new Texture2D(width, height);
+            for (int i = 0; i < height; i++)
+            {
+                texture.SetPixels(0, i, width, 1, m_texture.GetPixels(0, height - i - 1, width, 1));
+            }
+            byte[] data = texture.EncodeToJPG();
             File.WriteAllBytes(filePath, data);
         }
 
