@@ -59,8 +59,8 @@ namespace VLC
             "--no-video-title",
             "--verbose=4", 
             //"--ffmpeg-hw",
-            "--video-filter=transform",
-            "--transform-type=hflip",
+            //"--video-filter=transform",
+            "--transform-type={hflip,vflip}",
             //"--transform-type=vflip",
             //plugin_arg 
         };
@@ -272,6 +272,9 @@ namespace VLC
                     //":screen-fps=30",
                     //":screen-width=1920",
                     //":screen-width=1080",
+                    //":video-filter=transform",
+                    //":transform-type=hflip",
+                    //":transform-type=vflip",
                 };
                 AddOption(libvlc_media, arguments);
 

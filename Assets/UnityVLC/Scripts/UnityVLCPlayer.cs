@@ -124,18 +124,17 @@ namespace VLC
         private IntPtr OnVideoLock(IntPtr opaque, IntPtr planes)
         {
             Marshal.WriteIntPtr(planes, 0, _buff);
+            return IntPtr.Zero;
+        }
+
+        private void OnVideoDiplay(IntPtr opaque, IntPtr picture)
+        {
             Loom.QueueOnMainThread(() =>
             {
                 m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
                 m_texture.Apply();
                 GetProgress();
             });
-            return IntPtr.Zero;
-        }
-
-        private void OnVideoDiplay(IntPtr opaque, IntPtr picture)
-        {
-
         }
 
         private void OnVideoUnlock(IntPtr opaque, IntPtr picture, IntPtr planes)
