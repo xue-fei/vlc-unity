@@ -56,9 +56,9 @@
                 fixed4 ucol = tex2D(_UTex, uv);
 				fixed4 vcol = tex2D(_VTex, uv); 
 
-                float r = ycol.a + 1.370705 * (vcol.a - 0.5);
-				float g = ycol.a - 0.698001 * (vcol.a - 0.5) - (0.337633 * (ucol.a - 0.5));
-				float b = ycol.a + 1.732446 * (ucol.a - 0.5); 
+                float r = ycol.a + 1.4022 * vcol.a - 0.7011;
+				float g = ycol.a - 0.3456 * ucol.a - 0.7145* vcol.a + 0.5305;
+				float b = ycol.a + 1.771 * ucol.a - 0.8855; 
 				return fixed4(r,g,b,1);
 			}
 			ENDCG
