@@ -32,7 +32,14 @@ public class ProcessBuild
         {
             fi.Delete();
         }
-        Copy(Application.dataPath + "/Plugins/", disDirStr);
+        if (buildTarget == BuildTarget.StandaloneWindows64)
+        {
+            Copy(Application.dataPath + "/Plugins/x86_64/", disDirStr);
+        }
+        //if (buildTarget ==  BuildTarget.StandaloneWindows)
+        //{
+        //    Copy(Application.dataPath + "/Plugins/x86", disDirStr);
+        //}
         #endregion
     }
 
