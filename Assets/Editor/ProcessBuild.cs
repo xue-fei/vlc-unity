@@ -28,18 +28,14 @@ public class ProcessBuild
         string dataDirStr = path.Replace(fileInfo.Extension, "") + "_Data/";
         string disDirStr = dataDirStr + "Plugins/";
         DirectoryInfo di = new DirectoryInfo(disDirStr);
-        foreach (FileInfo fi in di.GetFiles())
-        {
-            fi.Delete();
-        }
-        if (buildTarget == BuildTarget.StandaloneWindows64)
+        //foreach (FileInfo fi in di.GetFiles())
+        //{
+        //    fi.Delete();
+        //}
+        if (buildTarget == BuildTarget.StandaloneWindows64 || buildTarget == BuildTarget.StandaloneWindows)
         {
             Copy(Application.dataPath + "/Plugins/x86_64/", disDirStr);
         }
-        //if (buildTarget ==  BuildTarget.StandaloneWindows)
-        //{
-        //    Copy(Application.dataPath + "/Plugins/x86", disDirStr);
-        //}
         #endregion
     }
 
@@ -57,10 +53,10 @@ public class ProcessBuild
 
         foreach (FileInfo fi in source.GetFiles())
         {
-            if(fi.Extension!= ".meta")
+            if (fi.Extension != ".meta")
             {
                 fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
-            } 
+            }
         }
 
         foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
