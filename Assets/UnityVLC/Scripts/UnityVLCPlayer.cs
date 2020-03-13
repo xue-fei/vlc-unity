@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -13,9 +14,11 @@ namespace VLC
         private int _pixelBytes = 3;
         private int _pitch;
         private IntPtr _buff = IntPtr.Zero;
+        private IntPtr _databuff = IntPtr.Zero;
         private VideoLock _videoLock;
         private VideoUnlock _videoUnlock;
         private VideoDisplay _videoDisplay;
+        private Queue<byte[]> videoData;
         /// <summary>
         /// 视频宽
         /// </summary>
@@ -37,12 +40,26 @@ namespace VLC
         public void Init()
         {
             Loom.Initialize();
+            videoData = new Queue<byte[]>();
             _videoLock += OnVideoLock;
             _videoDisplay += OnVideoDiplay;
             _videoUnlock += OnVideoUnlock;
             _libvlc_instance_t = VLCPlayer.Create_Media_Instance();
             _libvlc_media_player_t = VLCPlayer.Create_MediaPlayer(_libvlc_instance_t);
             Debug.Log("vlc version:" + VLCPlayer.GetVersion());
+        }
+
+        byte[] data = null;
+        private void Update()
+        {
+            if (videoData.Count > 0)
+            {
+                data = videoData.Dequeue();
+                Marshal.Copy(data, 0, _databuff, height * _pitch);
+                m_texture.LoadRawTextureData(_databuff, _databuff.ToInt32());
+                m_texture.Apply();
+                data = null;
+            }
         }
 
         /// <summary>
@@ -69,6 +86,7 @@ namespace VLC
             Debug.Log(m_texture.GetRawTextureData().Length);
             _pitch = width * _pixelBytes;
             _buff = Marshal.AllocHGlobal(height * _pitch);
+            _databuff = Marshal.AllocHGlobal(height * _pitch);
             material.mainTexture = m_texture;
             VLCPlayer.SetCallbacks(_libvlc_media_player_t, _videoLock, _videoUnlock, _videoDisplay, IntPtr.Zero);
             VLCPlayer.SetFormart(_libvlc_media_player_t, "RV24", width, height, _pitch);
@@ -130,6 +148,11 @@ namespace VLC
         private IntPtr OnVideoLock(IntPtr opaque, IntPtr planes)
         {
             Marshal.WriteIntPtr(planes, 0, _buff);
+
+            byte[] data = new byte[height * _pitch];
+            Marshal.Copy(_buff, data, 0, data.Length);
+
+            videoData.Enqueue(data);
             return IntPtr.Zero;
         }
 
@@ -137,8 +160,8 @@ namespace VLC
         {
             Loom.QueueOnMainThread(() =>
             {
-                m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
-                m_texture.Apply();
+                //m_texture.LoadRawTextureData(_buff, _buff.ToInt32());
+                //m_texture.Apply();
                 GetProgress();
             });
         }
@@ -187,6 +210,12 @@ namespace VLC
             }
             VLCPlayer.Release_MediaPlayer(_libvlc_media_player_t);
             VLCPlayer.Release_Media_Instance(_libvlc_instance_t);
+
+            Marshal.FreeHGlobal(_buff);
+            Marshal.FreeHGlobal(_databuff);
+            videoData.Clear();
+
+            Resources.UnloadUnusedAssets();
         }
     }
 }
