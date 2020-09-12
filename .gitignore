@@ -12,3 +12,4 @@ Assets/StreamingAssets/
 UnityPackageManager/
 UnityVLC.Editor.csproj
 Assembly-CSharp-Editor.csproj
+Logs/

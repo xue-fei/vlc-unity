@@ -26,6 +26,12 @@ public class ProcessBuild
         Debug.Log(fileInfo.Name);
         Debug.Log(fileInfo.Extension);
         string dataDirStr = path.Replace(fileInfo.Extension, "") + "_Data/";
+        //删除自动打包出的x86_64文件夹
+        DirectoryInfo x86_64 = new DirectoryInfo(dataDirStr + "Plugins/x86_64");
+        if(x86_64.Exists)
+        {
+            x86_64.Delete(true);
+        }
         string disDirStr = dataDirStr + "Plugins/";
         DirectoryInfo di = new DirectoryInfo(disDirStr);
         //foreach (FileInfo fi in di.GetFiles())
