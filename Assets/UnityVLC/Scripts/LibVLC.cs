@@ -1,353 +1,131 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security;
 
 namespace VLC
 {
-    //定义替代变量
-    using libvlc_media_t = IntPtr;
-    using libvlc_media_player_t = IntPtr;
-    using libvlc_instance_t = IntPtr;
-    using Debug = UnityEngine.Debug;
-
-    #region 导入库函数
-    [SuppressUnmanagedCodeSecurity]
-    internal static class LibVLC
+    /// <summary>
+    /// https://www.videolan.org/developers/vlc/doc/doxygen/html/group__libvlc.html
+    /// </summary>
+    public static class LibVLC
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         private const string pluginName = "libvlc";
-#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-        private const string pluginName = "__Internal";
 #endif
 
-        /// <summary>
-        /// 创建一个libvlc实例，它是引用计数的
-        /// </summary>
-        /// <param name="argc"></param>
-        /// <param name="argv"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_instance_t libvlc_new(int argc, IntPtr argv);
-
-        /// <summary>
-        /// 释放libvlc实例
-        /// </summary>
-        /// <param name="libvlc_instance"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_release(libvlc_instance_t libvlc_instance);
-
-        /// <summary>
-        /// 获取libvlc的版本
-        /// </summary>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport(pluginName)]
         internal static extern IntPtr libvlc_get_version();
 
-        /// <summary>
-        /// 从视频来源(例如http、rtsp)构建一个libvlc_meida
-        /// </summary>
-        /// <param name="libvlc_instance"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_media_t libvlc_media_new_location(libvlc_instance_t libvlc_instance, IntPtr path);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_new(int argc, params string[] args);
 
-        /// <summary>
-        /// 从本地文件路径构建一个libvlc_media
-        /// </summary>
-        /// <param name="libvlc_instance"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_media_t libvlc_media_new_path(libvlc_instance_t libvlc_instance, IntPtr path);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_release(IntPtr libvlc_instance);
 
-        /// <summary>
-        /// 释放libvlc_media
-        /// </summary>
-        /// <param name="libvlc_media_inst"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_release(libvlc_media_t libvlc_media_inst);
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_tracks_get(IntPtr media, out IntPtr ppTracks);
 
-        /// <summary>
-        /// 创建一个空的播放器
-        /// </summary>
-        /// <param name="libvlc_instance"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_media_player_t libvlc_media_player_new(libvlc_instance_t libvlc_instance);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_tracks_release(IntPtr tracks, int i_count);
 
-        /// <summary>
-        /// 从libvlc_media构建播放器
-        /// </summary>
-        /// <param name="libvlc_media"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_media_player_t libvlc_media_player_new_from_media(libvlc_media_t libvlc_media);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_player_new(IntPtr libvlc_instance);
 
-        /// <summary>
-        /// 释放播放器资源
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_release(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_new_path(IntPtr libvlc_instance, char[] path);
 
-        /// <summary>
-        /// 将视频(libvlc_media)绑定到播放器上
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="libvlc_media"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_set_media(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_new_path(IntPtr libvlc_instance, string path);
 
-        /// <summary>
-        /// 参数设置
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="options"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_add_option(libvlc_media_player_t libvlc_media_player, IntPtr options);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_new_location(IntPtr libvlc_instance, string path);
 
-        /// <summary>
-        /// 获取播放信息
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="libvlc_media"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_tracks_get(libvlc_media_player_t libvlc_media_player, libvlc_media_t libvlc_media);
+        [DllImport(pluginName)]
+        internal static extern libvlc_state_t libvlc_media_get_state(IntPtr media);
 
-        /// <summary>
-        /// 设置编码
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="chroma"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="pitch"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_video_set_format(libvlc_media_player_t libvlc_media_player, IntPtr chroma, int width, int height, int pitch);
+        [DllImport(pluginName)]
+        internal static extern libvlc_state_t libvlc_media_player_get_state(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 视频每一帧的数据信息
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <param name="lockCB"></param>
-        /// <param name="unlockCB"></param>
-        /// <param name="displayCB"></param>
-        /// <param name="opaque"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_video_set_callbacks(libvlc_media_player_t libvlc_mediaplayer, VideoLock lockCB, VideoUnlock unlockCB, VideoDisplay displayCB, IntPtr opaque);
+        [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_player_new_from_media(IntPtr media);
 
-        /// <summary>
-        /// 设置图像输出的窗口
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <param name="drawable"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_set_hwnd(libvlc_media_player_t libvlc_mediaplayer, Int32 drawable);
+        [DllImport(pluginName)]
+        internal static extern bool libvlc_media_player_can_pause(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 播放器播放
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_media_player_play(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_player_pause(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 播放器暂停
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_pause(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_player_play(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 播放器停止
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_stop(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_player_stop_async(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 解析视频资源的媒体信息(如时长等)
-        /// </summary>
-        /// <param name="libvlc_media"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_parse(libvlc_media_t libvlc_media);
+        [DllImport(pluginName)]
+        internal static extern Int64 libvlc_media_get_duration(IntPtr media);
 
-        /// <summary>
-        /// 获取视频宽度
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern Int32 libvlc_video_get_width(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern Int64 libvlc_media_player_get_time(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 获取视频高度
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern Int32 libvlc_video_get_height(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_player_set_position(IntPtr mediaPlayer, float f_pos, bool b_fast);
 
-        /// <summary>
-        /// 返回视频的时长(毫秒)(必须先调用libvlc_media_parse之后，该函数才会生效)
-        /// </summary>
-        /// <param name="libvlc_media"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern Int64 libvlc_media_get_duration(libvlc_media_t libvlc_media);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_player_release(IntPtr mediaPlayer);
 
-        /// <summary>
-        /// 当前播放时间
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern Int64 libvlc_media_player_get_time(libvlc_media_player_t libvlc_mediaplayer);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_release(IntPtr media);
 
-        /// <summary>
-        /// 设置播放时间
-        /// </summary>
-        /// <param name="libvlc_mediaplayer"></param>
-        /// <param name="time"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_media_player_set_time(libvlc_media_player_t libvlc_mediaplayer, Int64 time);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_player_set_media(IntPtr mediaPlayer, IntPtr media);
 
-        /// <summary>
-        /// 获取音量
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_audio_get_volume(libvlc_media_player_t libvlc_media_player);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_video_set_format(IntPtr mediaPlayer, string chroma, uint width, uint height, uint pitch);
 
-        /// <summary>
-        /// 设置音量
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="volume"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_audio_set_volume(libvlc_media_player_t libvlc_media_player, int volume);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_video_set_callbacks(IntPtr mediaPlayer, libvlc_video_lock_cb _lock, libvlc_video_unlock_cb _unlock, libvlc_video_display_cb _display, IntPtr _opaque);
 
-        /// <summary>
-        /// 设置全屏
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="isFullScreen"></param>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_set_fullscreen(libvlc_media_player_t libvlc_media_player, int isFullScreen);
+        [DllImport(pluginName)]
+        internal static extern bool libvlc_media_player_is_playing(IntPtr mediaPlayer);
 
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_get_fullscreen(libvlc_media_player_t libvlc_media_player);
+        [DllImport(pluginName)]
+        internal static extern void libvlc_media_player_set_pause(IntPtr mediaPlayer, int do_pause);
 
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void libvlc_toggle_fullscreen(libvlc_media_player_t libvlc_media_player);
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_parse_with_options(IntPtr mediaPlayer, libvlc_media_parse_flag_t parse_flag, int timeout);
 
-        /// <summary>
-        /// 判断播放时是否在播放
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern bool libvlc_media_player_is_playing(libvlc_media_player_t libvlc_media_player);
-
-        /// <summary>
-        /// 判断播放时是否能够Seek
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern bool libvlc_media_player_is_seekable(libvlc_media_player_t libvlc_media_player);
-
-        /// <summary>
-        /// 判断播放时是否能够Pause
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern bool libvlc_media_player_can_pause(libvlc_media_player_t libvlc_media_player);
-
-        /// <summary>
-        /// 判断播放器是否可以播放
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_media_player_will_play(libvlc_media_player_t libvlc_media_player);
-
-        /// <summary>
-        /// 进行快照
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <param name="num"></param>
-        /// <param name="filepath"></param>
-        /// <param name="i_width"></param>
-        /// <param name="i_height"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_video_take_snapshot(libvlc_media_player_t libvlc_media_player, int num, char[] filepath, int i_width, int i_height);
-
-        /// <summary>
-        /// 获取Media信息
-        /// </summary>
-        /// <param name="libvlc_media_player"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern libvlc_media_t libvlc_media_player_get_media(libvlc_media_player_t libvlc_media_player);
-
-        /// <summary>
-        /// 获取媒体信息
-        /// </summary>
-        /// <param name="libvlc_media"></param>
-        /// <param name="lib_vlc_media_stats"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_media_get_stats(libvlc_media_t libvlc_media, ref libvlc_media_stats_t lib_vlc_media_stats);
-
-        /// <summary>
-        /// 设置播放进度
-        /// </summary>
-        /// <param name="libvlc_media"></param>
-        /// <param name="posf"></param>
-        /// <returns></returns>
-        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern int libvlc_media_player_set_position(libvlc_media_t libvlc_media, float posf);
     }
-    #endregion
 
-    #region 结构体
-    public struct libvlc_media_stats_t
+    public enum libvlc_media_parse_flag_t
     {
-        /* Input */
-        public int i_read_bytes;
-        public float f_input_bitrate;
-
-        /* Demux */
-        public int i_demux_read_bytes;
-        public float f_demux_bitrate;
-        public int i_demux_corrupted;
-        public int i_demux_discontinuity;
-
-        /* Decoders */
-        public int i_decoded_video;
-        public int i_decoded_audio;
-
-        /* Video Output */
-        public int i_displayed_pictures;
-        public int i_lost_pictures;
-
-        /* Audio output */
-        public int i_played_abuffers;
-        public int i_lost_abuffers;
-
-        /* Stream output */
-        public int i_sent_packets;
-        public int i_sent_bytes;
-        public float f_send_bitrate;
+        libvlc_media_parse_local,
+        libvlc_media_parse_network,
+        libvlc_media_fetch_local,
+        libvlc_media_fetch_network,
+        libvlc_media_do_interact
     }
 
-    internal struct libvlc_media_track_t
+    public enum libvlc_state_t
+    {
+        libvlc_NothingSpecial,
+        libvlc_Opening,
+        libvlc_Buffering,
+        libvlc_Playing,
+        libvlc_Paused,
+        libvlc_Stopped,
+        libvlc_Ended,
+        libvlc_Error
+    }
+
+    public enum libvlc_track_type_t
+    {
+        libvlc_track_unknown = -1,
+        libvlc_track_audio = 0,
+        libvlc_track_video = 1,
+        libvlc_track_text = 2
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct libvlc_media_track_t
     {
         public uint i_codec;
         public uint i_original_fourcc;
@@ -355,18 +133,28 @@ namespace VLC
         public libvlc_track_type_t i_type;
         public int i_profile;
         public int i_level;
+        public IntPtr media;
+        public uint i_bitrate;
+        public IntPtr psz_language;
+        public IntPtr psz_description;
     }
-    #endregion
 
-    internal enum libvlc_track_type_t
+    [StructLayout(LayoutKind.Sequential)]
+    public struct libvlc_video_track_t
     {
-        libvlc_track_unknown,
-        libvlc_track_audio,
-        libvlc_track_video,
-        libvlc_track_text
+        public uint i_height;
+        public uint i_width;
+        public uint i_sar_num;
+        public uint i_sar_den;
+        public uint i_frame_rate_num;
+        public uint i_frame_rate_den;
+        public uint i_orientation;
+        public uint i_projection;
+        public IntPtr pose;
+        public uint i_multiview;
     }
 
-    public delegate IntPtr VideoLock(IntPtr opaque, IntPtr planes);
-    public delegate void VideoDisplay(IntPtr opaque, IntPtr picture);
-    public delegate void VideoUnlock(IntPtr opaque, IntPtr picture, IntPtr planes);
+    public delegate IntPtr libvlc_video_lock_cb(IntPtr opaque, ref IntPtr planes);
+    public delegate void libvlc_video_display_cb(IntPtr opaque, IntPtr picture);
+    public delegate void libvlc_video_unlock_cb(IntPtr opaque, IntPtr picture, ref IntPtr planes);
 }
