@@ -43,20 +43,37 @@ namespace VLC
             _width = width;
             _height = height;
             _gcHandle = GCHandle.Alloc(this);
-            string[] arguments =
+            string[] args1 =
                 {
                     "--no-ignore-config",
                     "--no-xlib",
                     "--no-video-title-show",
                     "--no-osd"
                 };
-            _libvlc = LibVLC.libvlc_new(arguments.Length, arguments);
+            _libvlc = LibVLC.libvlc_new(args1.Length, args1);
             if (_libvlc == IntPtr.Zero)
             {
                 Debug.LogError("Failed creat libvlc instance...");
                 return;
             }
             _media = LibVLC.libvlc_media_new_location(_libvlc, url);
+            string[] args2 =
+                {
+                    ":avcodec-hw=any", 
+                    ":vout=direct3d11",
+                    //":directx-use-sysmem",
+                    //":directx-overlay",
+                    //":spect-show-original",
+                    ":avcodec-threads=124" 
+                    //捕捉屏幕的相关参数
+                    //":screen-fps=30",
+                    //":screen-width=1920",
+                    //":screen-width=1080",
+                    //":video-filter=transform",
+                    //":transform-type=hflip",
+                    //":transform-type=vflip",
+                };
+            LibVLC.libvlc_media_add_option(_media, args2);
             if (_media == IntPtr.Zero)
             {
                 Debug.LogError("Failed creat media instance...");
@@ -64,7 +81,7 @@ namespace VLC
             }
             _mediaPlayer = LibVLC.libvlc_media_player_new(_libvlc);
             LibVLC.libvlc_media_player_set_media(_mediaPlayer, _media);
-            LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_network, 1000);
+            LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_local, 200);
             //LibVLC.libvlc_media_parse(_media);
             //LibVLC.libvlc_media_parse_async(_media);
             _videoLock = VideoLock;
@@ -72,7 +89,8 @@ namespace VLC
             _videoDisplay = VideoDisplay;
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
             LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", (uint)_width, (uint)_height, (uint)_width * (uint)_channels);
-            LibVLC.libvlc_media_player_play(_mediaPlayer);
+            System.Threading.Thread.Sleep(300);
+            //LibVLC.libvlc_media_player_play(_mediaPlayer);
             System.Threading.Thread t = new System.Threading.Thread(TrackReaderThread);
             t.Start();
         }

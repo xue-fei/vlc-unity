@@ -40,6 +40,9 @@ namespace VLC
         internal static extern IntPtr libvlc_media_new_location(IntPtr libvlc_instance, string path);
 
         [DllImport(pluginName)]
+        internal static extern void libvlc_media_add_option(IntPtr media, params string[] args);
+
+        [DllImport(pluginName)]
         internal static extern libvlc_state_t libvlc_media_get_state(IntPtr media);
 
         [DllImport(pluginName)]
