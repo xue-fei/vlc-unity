@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace VLC
@@ -160,4 +160,5 @@ namespace VLC
     public delegate IntPtr libvlc_video_lock_cb(IntPtr opaque, ref IntPtr planes);
     public delegate void libvlc_video_display_cb(IntPtr opaque, IntPtr picture);
     public delegate void libvlc_video_unlock_cb(IntPtr opaque, IntPtr picture, ref IntPtr planes);
+    public delegate void libvlc_callback_t(libvlc_event_t p_event, IntPtr p_data);
 }
