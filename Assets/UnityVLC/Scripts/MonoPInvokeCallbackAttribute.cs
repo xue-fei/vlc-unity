@@ -2,5 +2,5 @@ using System;
 
 public class MonoPInvokeCallbackAttribute : Attribute
 {
-    public MonoPInvokeCallbackAttribute() { }
+    public MonoPInvokeCallbackAttribute(Type t) { }
 }
