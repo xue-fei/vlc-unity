@@ -5,6 +5,7 @@ namespace VLC
 {
     /// <summary>
     /// https://www.videolan.org/developers/vlc/doc/doxygen/html/group__libvlc.html
+    /// http://nightlies.videolan.org/
     /// </summary>
     public static class LibVLC
     {

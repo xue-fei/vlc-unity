@@ -28,9 +28,15 @@ public class ProcessBuild
         string dataDirStr = path.Replace(fileInfo.Extension, "") + "_Data/";
         //删除自动打包出的x86_64文件夹
         DirectoryInfo x86_64 = new DirectoryInfo(dataDirStr + "Plugins/x86_64");
-        if(x86_64.Exists)
+        if (x86_64.Exists)
         {
             x86_64.Delete(true);
+        }
+        //删除自动打包出的x86文件夹
+        DirectoryInfo x86 = new DirectoryInfo(dataDirStr + "Plugins/x86");
+        if (x86.Exists)
+        {
+            x86.Delete(true);
         }
         string disDirStr = dataDirStr + "Plugins/";
         DirectoryInfo di = new DirectoryInfo(disDirStr);
@@ -38,9 +44,15 @@ public class ProcessBuild
         //{
         //    fi.Delete();
         //}
-        if (buildTarget == BuildTarget.StandaloneWindows64 || buildTarget == BuildTarget.StandaloneWindows)
+        if (buildTarget == BuildTarget.StandaloneWindows64)
         {
+            Debug.LogWarning("x86_64");
             Copy(Application.dataPath + "/Plugins/x86_64/", disDirStr);
+        }
+        if (buildTarget == BuildTarget.StandaloneWindows)
+        {
+            Debug.LogWarning("x86");
+            Copy(Application.dataPath + "/Plugins/x86/", disDirStr);
         }
         #endregion
     }
