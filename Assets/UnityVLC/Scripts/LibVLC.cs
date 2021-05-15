@@ -52,6 +52,15 @@ namespace VLC
         internal static extern IntPtr libvlc_media_player_new_from_media(IntPtr media);
 
         [DllImport(pluginName)]
+        internal static extern IntPtr libvlc_media_player_event_manager(IntPtr mediaPlayer);
+
+        [DllImport(pluginName)]
+        internal static extern int libvlc_event_attach(IntPtr p_event_manager, libvlc_event_e i_event_type, libvlc_callback_t f_callback, IntPtr user_data);
+
+        [DllImport(pluginName)]
+        internal static extern void libvlc_event_detach(IntPtr p_event_manager, libvlc_event_e i_event_type, libvlc_callback_t f_callback, IntPtr p_user_data);
+
+        [DllImport(pluginName)]
         internal static extern bool libvlc_media_player_can_pause(IntPtr mediaPlayer);
 
         [DllImport(pluginName)]

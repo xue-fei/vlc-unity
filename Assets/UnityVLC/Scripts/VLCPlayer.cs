@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace VLC
@@ -7,33 +8,30 @@ namespace VLC
 
     public class VLCPlayer
     {
-        private IntPtr _libvlc;
-        private IntPtr _media;
-        private IntPtr _mediaPlayer;
+        private static IntPtr _libvlc;
+        private static IntPtr _media;
+        private static IntPtr _mediaPlayer;
+        private static IntPtr event_manager;
 
-        private libvlc_video_lock_cb _videoLock;
-        private libvlc_video_unlock_cb _videoUnlock;
-        private libvlc_video_display_cb _videoDisplay;
-        private int _tracks;
-        private IntPtr _tracksIntPtr;
-        private libvlc_video_track_t? _videoTrack = null;
-        private int _width = 1024;
-        private int _height = 576;
-        private int _channels = 3;
-        private IntPtr _imageIntPtr;
-        private byte[] _imageData;
+        private static libvlc_video_lock_cb _videoLock;
+        private static libvlc_video_unlock_cb _videoUnlock;
+        private static libvlc_video_display_cb _videoDisplay;
+        private static int _width = 1024;
+        private static int _height = 576;
+        private static int _channels = 3;
+        private static IntPtr _imageIntPtr;
+        private static byte[] _imageData;
         /// <summary>
         /// 视频长度(毫秒)
         /// </summary>
-        private float length = 0;
+        private static float length = 0;
         private GCHandle _gcHandle;
-        private bool _locked = true;
-        private bool _update = false;
-        private volatile bool _cancel = false;
+        private static bool _locked = true;
+        private static bool _update = false;
         /// <summary>
         /// 视频播放进度
         /// </summary>
-        public Action<float, string> OnProgress;
+        public static Action<float, string> OnProgress;
 
         #region 公开函数
 
@@ -59,7 +57,7 @@ namespace VLC
             _media = LibVLC.libvlc_media_new_location(_libvlc, url);
             string[] args2 =
                 {
-                    ":avcodec-hw=any", 
+                    ":avcodec-hw=any",
                     ":vout=direct3d11",
                     //":directx-use-sysmem",
                     //":directx-overlay",
@@ -80,55 +78,59 @@ namespace VLC
                 return;
             }
             _mediaPlayer = LibVLC.libvlc_media_player_new(_libvlc);
+            event_manager = LibVLC.libvlc_media_player_event_manager(_mediaPlayer);
+            attachEvents(event_manager);
             LibVLC.libvlc_media_player_set_media(_mediaPlayer, _media);
             LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_local, 200);
-            //LibVLC.libvlc_media_parse(_media);
-            //LibVLC.libvlc_media_parse_async(_media);
             _videoLock = VideoLock;
             _videoUnlock = VideoUnlock;
             _videoDisplay = VideoDisplay;
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
             LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", (uint)_width, (uint)_height, (uint)_width * (uint)_channels);
-            System.Threading.Thread.Sleep(300);
-            //LibVLC.libvlc_media_player_play(_mediaPlayer);
-            System.Threading.Thread t = new System.Threading.Thread(TrackReaderThread);
-            t.Start();
         }
 
-        private void TrackReaderThread()
+        void attachEvents(IntPtr eventManager)
         {
-            int _trackGetAttempts = 0;
-            while (_trackGetAttempts < 10 && _cancel == false)
+            // 事件列表
+            List<libvlc_event_e> events = new List<libvlc_event_e>();
+            events.Add(libvlc_event_e.libvlc_MediaListPlayerPlayed);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerPaused);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerStopped);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerPositionChanged);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerTimeChanged);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerLengthChanged);
+            // 订阅事件
+            foreach (libvlc_event_e e in events)
             {
-                libvlc_video_track_t? track = GetVideoTrack();
+                LibVLC.libvlc_event_attach(eventManager, e, handleEvents, IntPtr.Zero);
+            }
+        }
 
-                if (track.HasValue && track.Value.i_width > 0 && track.Value.i_height > 0)
-                {
-                    _videoTrack = track;
-                    if (_width <= 0 || _height <= 0)
-                    {
-                        _width = (int)_videoTrack.Value.i_width;
-                        _height = (int)_videoTrack.Value.i_height;
-                        LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _videoTrack.Value.i_width, _videoTrack.Value.i_height, (uint)_width * (uint)_channels);
-                        //LibVLC.libvlc_media_player_play(_mediaPlayer);
-                    }
+        [MonoPInvokeCallback(typeof(libvlc_callback_t))]
+        public static void handleEvents(libvlc_event_t e, IntPtr userData)
+        {
+            switch (e.type)
+            {
+                case libvlc_event_e.libvlc_MediaListPlayerPlayed:
+                    Debug.LogWarning("libvlc_MediaListPlayerPlayed");
                     break;
-                }
-                _trackGetAttempts++;
-                System.Threading.Thread.Sleep(500);
-            }
-
-            if (_trackGetAttempts >= 10)
-            {
-                Debug.LogError("Maximum attempts of getting video track reached, maybe opening failed?");
-            }
-        }
-
-        public libvlc_video_track_t? VideoTrack
-        {
-            get
-            {
-                return _videoTrack;
+                case libvlc_event_e.libvlc_MediaPlayerPaused:
+                    Debug.LogWarning("libvlc_MediaPlayerPaused");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerStopped:
+                    Debug.LogWarning("libvlc_MediaPlayerStopped");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerPositionChanged:
+                    Debug.LogWarning("libvlc_MediaPlayerPositionChanged");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerTimeChanged:
+                    Debug.LogWarning("libvlc_MediaPlayerTimeChanged");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerLengthChanged:
+                    Debug.LogWarning("libvlc_MediaPlayerLengthChanged");
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -144,7 +146,8 @@ namespace VLC
             return false;
         }
 
-        private IntPtr VideoLock(IntPtr opaque, ref IntPtr planes)
+        [MonoPInvokeCallback(typeof(libvlc_video_lock_cb))]
+        public static IntPtr VideoLock(IntPtr opaque, ref IntPtr planes)
         {
             _locked = true;
             if (_imageIntPtr == IntPtr.Zero)
@@ -155,12 +158,14 @@ namespace VLC
             return _imageIntPtr;
         }
 
-        private void VideoUnlock(IntPtr opaque, IntPtr picture, ref IntPtr planes)
+        [MonoPInvokeCallback(typeof(libvlc_video_unlock_cb))]
+        public static void VideoUnlock(IntPtr opaque, IntPtr picture, ref IntPtr planes)
         {
             _locked = false;
         }
 
-        private void VideoDisplay(IntPtr opaque, IntPtr picture)
+        [MonoPInvokeCallback(typeof(libvlc_video_display_cb))]
+        public static void VideoDisplay(IntPtr opaque, IntPtr picture)
         {
             if (!_update)
             {
@@ -188,7 +193,9 @@ namespace VLC
                     return false;
                 }
                 //休眠指定时间
-                //Thread.Sleep(500); 
+                //Thread.Sleep(500);
+                length = GetMediaLength();
+                Debug.Log("length:" + length);
                 return true;
             }
             catch (Exception e)
@@ -277,25 +284,6 @@ namespace VLC
             }
         }
 
-        public libvlc_video_track_t? GetVideoTrack()
-        {
-            IntPtr tracks;
-            libvlc_video_track_t? videoTrack = null;
-            int tracksInt = LibVLC.libvlc_media_tracks_get(_media, out tracks);
-            _tracks = tracksInt;
-            _tracksIntPtr = tracks;
-            for (int i = 0; i < tracksInt; i++)
-            {
-                IntPtr mtrackptr = Marshal.ReadIntPtr(tracks, i * IntPtr.Size);
-                libvlc_media_track_t mtrack = Marshal.PtrToStructure<libvlc_media_track_t>(mtrackptr);
-                if (mtrack.i_type == libvlc_track_type_t.libvlc_track_video)
-                {
-                    videoTrack = Marshal.PtrToStructure<libvlc_video_track_t>(mtrack.media);
-                }
-            }
-            return videoTrack;
-        }
-
         public long GetMediaLength()
         {
             long length = 0;
@@ -306,7 +294,7 @@ namespace VLC
             return length;
         }
 
-        public Int64 GetPosition()
+        public static Int64 GetPosition()
         {
             return LibVLC.libvlc_media_player_get_time(_mediaPlayer);
         }
@@ -316,25 +304,18 @@ namespace VLC
             LibVLC.libvlc_media_player_set_position(_mediaPlayer, posf, false);
         }
 
-        public void GetProgress()
+        public static void GetProgress()
         {
             long len = GetPosition();
             string time = GetHMS((int)len);
             float progress = len / length;
-            if (OnProgress != null)
+            Loom.QueueOnMainThread(() =>
             {
-                OnProgress(progress, time);
-            }
-        }
-
-        public void SetProgress(float value)
-        {
-            SetPosition(value);
-            string time = GetHMS((int)(length * value));
-            if (OnProgress != null)
-            {
-                OnProgress(value, time);
-            }
+                if (OnProgress != null)
+                {
+                    OnProgress(progress, time);
+                }
+            });
         }
 
         public string GetVersion()
@@ -364,7 +345,7 @@ namespace VLC
             _libvlc = IntPtr.Zero;
         }
 
-        private string GetHMS(int length)
+        private static string GetHMS(int length)
         {
             TimeSpan ts = new TimeSpan(0, 0, 0, 0, length);
 

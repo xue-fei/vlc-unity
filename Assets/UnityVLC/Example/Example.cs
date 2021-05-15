@@ -16,10 +16,6 @@ public class Example : MonoBehaviour
     /// 视频高
     /// </summary>
     private int height = 768;
-    /// <summary>
-    /// 视频长度(毫秒)
-    /// </summary>
-    private float length = 0;
     public RawImage rawImage;
     private Texture2D texture;
     public Slider slider;
@@ -41,9 +37,7 @@ public class Example : MonoBehaviour
         //string videoPath = "screen://";
         player = new VLCPlayer(width, height, videoPath);
 
-        player.OnProgress += OnProgress;
-        length = player.GetMediaLength();
-        Debug.Log("length:" + length);
+        VLCPlayer.OnProgress += OnProgress;
 
         btnStart.onClick.AddListener(delegate ()
         {
@@ -73,10 +67,9 @@ public class Example : MonoBehaviour
         {
             if (texture == null)
             {
-                if ((width <= 0 || height <= 0) && player.VideoTrack != null)
+                if ((width <= 0 || height <= 0))
                 {
-                    width = (int)player.VideoTrack.Value.i_width;
-                    height = (int)player.VideoTrack.Value.i_height;
+
                 }
                 if (width > 0 && height > 0)
                 {
@@ -86,7 +79,7 @@ public class Example : MonoBehaviour
             }
             else
             {
-                GetProgress();
+                VLCPlayer.GetProgress();
                 texture.LoadRawTextureData(img);
                 texture.Apply(false);
             }
@@ -101,7 +94,7 @@ public class Example : MonoBehaviour
 
     void OnDrag(BaseEventData data)
     {
-        player.SetProgress(slider.value);
+        player.SetPosition(slider.value);
     }
 
     private void OnCtrl(Button button)
@@ -133,26 +126,6 @@ public class Example : MonoBehaviour
                 player.Stop();
             }
         }
-    }
-
-    /// <summary>
-    /// 获取播放进度 
-    /// </summary>
-    private void GetProgress()
-    {
-        long len = player.GetPosition();
-        string time = GetHMS((int)len);
-        float progress = len / length;
-        slider.value = progress;
-        text.text = time;
-    }
-
-    private string GetHMS(int length)
-    {
-        TimeSpan ts = new TimeSpan(0, 0, 0, 0, length);
-
-        return (ts.Hours.ToString("00") + ":" + ts.Minutes.ToString("00") + ":"
-                + ts.Seconds.ToString("00"));
     }
 
     private void OnDestroy()
