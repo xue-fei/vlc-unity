@@ -28,11 +28,11 @@ public class Example : MonoBehaviour
     void Start()
     {
         //湖南卫视直播地址
-        //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
-        //大兔子
-        //string videoPath = "http://223.110.242.130:6610/gitv/live1/G_CCTV-1-HQ/1.m3u8";
+        string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
+        //cctv1hd
+        //string videoPath = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
         //本地视频
-        string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
+        //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
         //捕捉屏幕
         //string videoPath = "screen://";
         player = new VLCPlayer(width, height, videoPath);

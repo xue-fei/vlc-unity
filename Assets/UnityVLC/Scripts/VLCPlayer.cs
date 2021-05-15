@@ -93,7 +93,9 @@ namespace VLC
         {
             // 事件列表
             List<libvlc_event_e> events = new List<libvlc_event_e>();
-            events.Add(libvlc_event_e.libvlc_MediaListPlayerPlayed);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerOpening);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerBuffering);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerPlaying); 
             events.Add(libvlc_event_e.libvlc_MediaPlayerPaused);
             events.Add(libvlc_event_e.libvlc_MediaPlayerStopped);
             events.Add(libvlc_event_e.libvlc_MediaPlayerPositionChanged);
@@ -111,8 +113,14 @@ namespace VLC
         {
             switch (e.type)
             {
-                case libvlc_event_e.libvlc_MediaListPlayerPlayed:
-                    Debug.LogWarning("libvlc_MediaListPlayerPlayed");
+                case libvlc_event_e.libvlc_MediaPlayerOpening:
+                    Debug.LogWarning("libvlc_MediaPlayerOpening");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerBuffering:
+                    Debug.LogWarning("libvlc_MediaPlayerBuffering");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerPlaying: 
+                    Debug.LogWarning("libvlc_MediaPlayerPlaying");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPaused:
                     Debug.LogWarning("libvlc_MediaPlayerPaused");
