@@ -11,14 +11,14 @@ namespace VLC
         private static IntPtr _libvlc;
         private static IntPtr _media;
         private static IntPtr _mediaPlayer;
-        private static IntPtr event_manager;
+        private static IntPtr _event_manager;
 
         private static libvlc_video_lock_cb _videoLock;
         private static libvlc_video_unlock_cb _videoUnlock;
         private static libvlc_video_display_cb _videoDisplay;
-        private static int _width = 1024;
-        private static int _height = 576;
-        private static int _channels = 3;
+        private static uint _width = 1024;
+        private static uint _height = 576;
+        private static uint _channels = 3;
         private static IntPtr _imageIntPtr;
         private static byte[] _imageData;
         /// <summary>
@@ -32,10 +32,12 @@ namespace VLC
         /// 视频播放进度
         /// </summary>
         public static Action<float, string> OnProgress;
+        // 事件列表
+        List<libvlc_event_e> events = new List<libvlc_event_e>();
 
         #region 公开函数
 
-        public VLCPlayer(int width, int height, string url)
+        public VLCPlayer(uint width, uint height, string url)
         {
             Debug.Log("Playing: " + url);
             _width = width;
@@ -78,24 +80,22 @@ namespace VLC
                 return;
             }
             _mediaPlayer = LibVLC.libvlc_media_player_new(_libvlc);
-            event_manager = LibVLC.libvlc_media_player_event_manager(_mediaPlayer);
-            attachEvents(event_manager);
+            _event_manager = LibVLC.libvlc_media_player_event_manager(_mediaPlayer);
+            attachEvents(_event_manager);
             LibVLC.libvlc_media_player_set_media(_mediaPlayer, _media);
             LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_local, 200);
             _videoLock = VideoLock;
             _videoUnlock = VideoUnlock;
             _videoDisplay = VideoDisplay;
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
-            LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", (uint)_width, (uint)_height, (uint)_width * (uint)_channels);
+            LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
 
         void attachEvents(IntPtr eventManager)
         {
-            // 事件列表
-            List<libvlc_event_e> events = new List<libvlc_event_e>();
             events.Add(libvlc_event_e.libvlc_MediaPlayerOpening);
             events.Add(libvlc_event_e.libvlc_MediaPlayerBuffering);
-            events.Add(libvlc_event_e.libvlc_MediaPlayerPlaying); 
+            events.Add(libvlc_event_e.libvlc_MediaPlayerPlaying);
             events.Add(libvlc_event_e.libvlc_MediaPlayerPaused);
             events.Add(libvlc_event_e.libvlc_MediaPlayerStopped);
             events.Add(libvlc_event_e.libvlc_MediaPlayerPositionChanged);
@@ -108,6 +108,14 @@ namespace VLC
             }
         }
 
+        void detachEvents(IntPtr eventManager)
+        {
+            foreach (libvlc_event_e e in events)
+            {
+                LibVLC.libvlc_event_detach(eventManager, e, handleEvents, IntPtr.Zero);
+            }
+        }
+
         [MonoPInvokeCallback(typeof(libvlc_callback_t))]
         public static void handleEvents(libvlc_event_t e, IntPtr userData)
         {
@@ -117,10 +125,12 @@ namespace VLC
                     Debug.LogWarning("libvlc_MediaPlayerOpening");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerBuffering:
-                    Debug.LogWarning("libvlc_MediaPlayerBuffering");
+                    //Debug.LogWarning("libvlc_MediaPlayerBuffering");
                     break;
-                case libvlc_event_e.libvlc_MediaPlayerPlaying: 
-                    Debug.LogWarning("libvlc_MediaPlayerPlaying");
+                case libvlc_event_e.libvlc_MediaPlayerPlaying:
+                    LibVLC.libvlc_video_get_size(_mediaPlayer, 0, ref _width, ref _height);
+                    Debug.LogWarning("_width:" + _width + " _height:" + _height);
+                    //Debug.LogWarning("libvlc_MediaPlayerPlaying");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPaused:
                     Debug.LogWarning("libvlc_MediaPlayerPaused");
@@ -129,13 +139,15 @@ namespace VLC
                     Debug.LogWarning("libvlc_MediaPlayerStopped");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPositionChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerPositionChanged");
+                    //Debug.LogWarning("libvlc_MediaPlayerPositionChanged");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerTimeChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerTimeChanged");
+                    //LibVLC.libvlc_video_get_size(_mediaPlayer, 0, ref _width, ref _height);
+                    //Debug.LogWarning("_width:" + _width + " _height:" + _height); 
+                    //Debug.LogWarning("libvlc_MediaPlayerTimeChanged");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerLengthChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerLengthChanged");
+                    //Debug.LogWarning("libvlc_MediaPlayerLengthChanged");
                     break;
                 default:
                     break;
@@ -160,7 +172,7 @@ namespace VLC
             _locked = true;
             if (_imageIntPtr == IntPtr.Zero)
             {
-                _imageIntPtr = Marshal.AllocHGlobal(_width * _channels * _height);
+                _imageIntPtr = Marshal.AllocHGlobal((int)(_width * _channels * _height));
             }
             planes = _imageIntPtr;
             return _imageIntPtr;
@@ -178,7 +190,7 @@ namespace VLC
             if (!_update)
             {
                 _imageData = new byte[_width * _channels * _height];
-                Marshal.Copy(picture, _imageData, 0, _width * _channels * _height);
+                Marshal.Copy(picture, _imageData, 0, (int)(_width * _channels * _height));
                 _update = true;
             }
         }
@@ -336,6 +348,10 @@ namespace VLC
         /// </summary>
         public void Dispose()
         {
+            if (_event_manager != IntPtr.Zero)
+            {
+                detachEvents(_event_manager);
+            }
             if (_mediaPlayer != IntPtr.Zero)
             {
                 LibVLC.libvlc_media_player_release(_mediaPlayer);

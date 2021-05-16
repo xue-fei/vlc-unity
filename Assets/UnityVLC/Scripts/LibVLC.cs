@@ -98,6 +98,9 @@ namespace VLC
         internal static extern void libvlc_video_set_callbacks(IntPtr mediaPlayer, libvlc_video_lock_cb _lock, libvlc_video_unlock_cb _unlock, libvlc_video_display_cb _display, IntPtr _opaque);
 
         [DllImport(pluginName)]
+        internal static extern int libvlc_video_get_size(IntPtr mediaPlayer, uint num, ref uint width, ref uint height);
+
+        [DllImport(pluginName)]
         internal static extern bool libvlc_media_player_is_playing(IntPtr mediaPlayer);
 
         [DllImport(pluginName)]

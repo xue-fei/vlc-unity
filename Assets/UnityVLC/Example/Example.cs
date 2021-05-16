@@ -10,11 +10,11 @@ public class Example : MonoBehaviour
     /// <summary>
     /// 视频宽
     /// </summary>
-    private int width = 1024;
+    private uint width = 1024;
     /// <summary>
     /// 视频高
     /// </summary>
-    private int height = 768;
+    private uint height = 576;
     public RawImage rawImage;
     private Texture2D texture;
     public Slider slider;
@@ -66,13 +66,9 @@ public class Example : MonoBehaviour
         {
             if (texture == null)
             {
-                if ((width <= 0 || height <= 0))
-                {
-
-                }
                 if (width > 0 && height > 0)
                 {
-                    texture = new Texture2D(width, height, TextureFormat.RGB24, false, false);
+                    texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
                     rawImage.texture = texture;
                 }
             }
@@ -87,7 +83,6 @@ public class Example : MonoBehaviour
 
     private void OnProgress(float progress, string time)
     {
-        slider.value = progress;
         text.text = time;
     }
 
