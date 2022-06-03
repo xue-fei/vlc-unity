@@ -29,9 +29,9 @@ public class Example : MonoBehaviour
         //湖南卫视直播地址
         //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
         //cctv1hd
-        //string videoPath = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
+        string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
         //本地视频
-        string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
+        //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
         //捕捉屏幕
         //string videoPath = "screen://";
         player = new VLCPlayer(width, height, videoPath);
