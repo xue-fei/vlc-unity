@@ -29,6 +29,8 @@ public class Example : MonoBehaviour
         //湖南卫视直播地址
         //string videoPath = "rtmp://58.200.131.2:1935/livetv/hunantv";
         //http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8
+        //http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8
+        //http://hw-m-l.cztv.com/channels/lantian/channel05/720p.m3u8
         string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
         //本地视频
         //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
@@ -124,6 +126,10 @@ public class Example : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (player.IsPlaying())
+        {
+            player.Stop();
+        }
         player?.Dispose();
     }
 }

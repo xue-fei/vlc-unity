@@ -71,6 +71,9 @@ namespace VLC
         internal static extern int libvlc_media_player_play(IntPtr mediaPlayer);
 
         [DllImport(pluginName)]
+        internal static extern int libvlc_media_player_stop(IntPtr mediaPlayer);
+
+        [DllImport(pluginName)]
         internal static extern int libvlc_media_player_stop_async(IntPtr mediaPlayer);
 
         [DllImport(pluginName)]

@@ -270,8 +270,9 @@ namespace VLC
                 {
                     return false;
                 }
-
-                LibVLC.libvlc_media_player_stop_async(_mediaPlayer);
+                LibVLC.libvlc_media_player_stop(_mediaPlayer);
+                //VLC4.0或更高版本
+                //LibVLC.libvlc_media_player_stop_async(_mediaPlayer);
 
                 return true;
             }
