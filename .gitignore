@@ -14,3 +14,6 @@ UnityVLC.Editor.csproj
 Assembly-CSharp-Editor.csproj
 Logs/
 .vsconfig
+Assets/Plugins/x86_64/plugins/plugins.dat
+Assets/Plugins/x86_64/plugins/plugins.dat.meta
+UserSettings/Layouts/default-2021.dwlt

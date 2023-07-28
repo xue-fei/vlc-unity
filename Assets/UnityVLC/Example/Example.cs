@@ -31,7 +31,7 @@ public class Example : MonoBehaviour
         //http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8
         //http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8
         //http://hw-m-l.cztv.com/channels/lantian/channel05/720p.m3u8
-        string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
+        string videoPath = "http://hw-m-l.cztv.com/channels/lantian/channel05/720p.m3u8";
         //本地视频
         //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
         //捕捉屏幕
