@@ -49,11 +49,12 @@ public class ProcessBuild
             Debug.LogWarning("x86_64");
             Copy(Application.dataPath + "/Plugins/x86_64/", disDirStr);
         }
-        if (buildTarget == BuildTarget.StandaloneWindows)
-        {
-            Debug.LogWarning("x86");
-            Copy(Application.dataPath + "/Plugins/x86/", disDirStr);
-        }
+        // 2024.7.9移除x86
+        //if (buildTarget == BuildTarget.StandaloneWindows)
+        //{
+        //    Debug.LogWarning("x86");
+        //    Copy(Application.dataPath + "/Plugins/x86/", disDirStr);
+        //}
         #endregion
     }
 
