@@ -11,6 +11,8 @@ namespace VLC
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         private const string pluginName = "libvlc";
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        private const string pluginName = "libvlc.so";
 #endif
 
         [DllImport(pluginName)]
