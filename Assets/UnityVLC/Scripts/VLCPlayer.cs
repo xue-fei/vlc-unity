@@ -12,7 +12,8 @@ namespace VLC
         private static IntPtr _media;
         private static IntPtr _mediaPlayer;
         private static IntPtr _event_manager;
-
+        private static libvlc_video_cleanup_cb _videoClean;
+        private static libvlc_video_format_cb _videoFormat;
         private static libvlc_video_lock_cb _videoLock;
         private static libvlc_video_unlock_cb _videoUnlock;
         private static libvlc_video_display_cb _videoDisplay;
@@ -84,10 +85,14 @@ namespace VLC
             attachEvents(_event_manager);
             LibVLC.libvlc_media_player_set_media(_mediaPlayer, _media);
             LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_local, 200);
+            _videoFormat = VideoFormat;
+            _videoClean = VideoClean;
             _videoLock = VideoLock;
             _videoUnlock = VideoUnlock;
             _videoDisplay = VideoDisplay;
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
+            
+            //LibVLC.libvlc_video_set_format_callbacks(_mediaPlayer,_videoFormat,_videoClean);
             LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
 
@@ -164,6 +169,19 @@ namespace VLC
                 return true;
             }
             return false;
+        }
+
+        [MonoPInvokeCallback(typeof(libvlc_video_format_cb))]
+        public static IntPtr VideoFormat(IntPtr opaque, string chroma, uint width, uint height, uint pitches, uint lines)
+        {
+            Debug.LogWarning(" " + chroma + " " + width + " " + height);
+            return (IntPtr)1;
+        }
+
+        [MonoPInvokeCallback(typeof(libvlc_video_cleanup_cb))]
+        public static void VideoClean(IntPtr opaque)
+        {
+
         }
 
         [MonoPInvokeCallback(typeof(libvlc_video_lock_cb))]

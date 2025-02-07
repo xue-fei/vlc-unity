@@ -100,6 +100,9 @@ namespace VLC
         internal static extern void libvlc_video_set_format(IntPtr mediaPlayer, string chroma, uint width, uint height, uint pitch);
 
         [DllImport(pluginName)]
+        internal static extern void libvlc_video_set_format_callbacks(IntPtr mediaPlayer, libvlc_video_format_cb setup, libvlc_video_cleanup_cb cleanup);
+
+        [DllImport(pluginName)]
         internal static extern void libvlc_video_set_callbacks(IntPtr mediaPlayer, libvlc_video_lock_cb _lock, libvlc_video_unlock_cb _unlock, libvlc_video_display_cb _display, IntPtr _opaque);
 
         [DllImport(pluginName)]
@@ -175,7 +178,9 @@ namespace VLC
         public uint i_multiview;
     }
 
+    public delegate IntPtr libvlc_video_format_cb(IntPtr opaque, string chroma, uint width, uint height, uint pitches, uint lines);
     public delegate IntPtr libvlc_video_lock_cb(IntPtr opaque, ref IntPtr planes);
+    public delegate void libvlc_video_cleanup_cb(IntPtr opaque);
     public delegate void libvlc_video_display_cb(IntPtr opaque, IntPtr picture);
     public delegate void libvlc_video_unlock_cb(IntPtr opaque, IntPtr picture, ref IntPtr planes);
     public delegate void libvlc_callback_t(libvlc_event_t p_event, IntPtr p_data);
