@@ -6,5 +6,12 @@ Unity调用VLC的库解码视频显示到3D场景中，支持常见本地视频�
 
 系统是64位的，因为我用的VLC的类库是64位的，用64位的Unity发布exe时选择x86_64 
 
-示例是播放湖南卫视的rtmp视频流
+Linux相关  
+sudo apt install vlc  
+修改/etc/profile，在文件末尾加上两行  
+LD_LIBRARY_PATH=./  
+export LD_LIBRARY_PATH  
+source /etc/profile  
+
+示例是播放湖南卫视的rtmp视频流——此视频流地址已不可用
 ![Image text](https://images.gitee.com/uploads/images/2019/0626/100814_893f7478_80624.jpeg)
