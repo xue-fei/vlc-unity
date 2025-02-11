@@ -14,6 +14,10 @@ namespace VLC
 #elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
         private const string pluginName = "libvlc.so";
 #endif
+        [DllImport("libdl", EntryPoint = "dlopen")]
+        internal extern static IntPtr LoadLibrary(string path);
+        [DllImport("libdl", EntryPoint = "dlclose")]
+        internal extern static int CloseLibrary(IntPtr handle);
 
         [DllImport(pluginName)]
         internal static extern IntPtr libvlc_get_version();
