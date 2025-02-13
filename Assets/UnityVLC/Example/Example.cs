@@ -28,8 +28,8 @@ public class Example : MonoBehaviour
     void Start()
     {
         Loom.Initialize();
-        string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
-        //string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
+        //string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
+        string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
         //string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
         //string videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
         //本地视频
@@ -65,7 +65,7 @@ public class Example : MonoBehaviour
     private void Update()
     {
         if (player != null && player.GetVideoImage(out img))
-        { 
+        {
             if (texture == null)
             {
                 if (width > 0 && height > 0)
@@ -77,9 +77,12 @@ public class Example : MonoBehaviour
             }
             else
             {
-                VLCPlayer.GetProgress();
-                texture.LoadRawTextureData(img);
-                texture.Apply(false);
+                if (width > 0 && height > 0)
+                {
+                    VLCPlayer.GetProgress();
+                    texture.LoadRawTextureData(img);
+                    texture.Apply(false);
+                }
             }
         }
     }
@@ -92,24 +95,26 @@ public class Example : MonoBehaviour
     void OnDrag(BaseEventData data)
     {
         player.SetPosition(slider.value);
-    } 
+    }
 
     IEnumerator GetSize()
     {
         float time = Time.time;
-        while(player.GetSize()==-1)
+        while (player.GetSize() == -1)
         {
-            player.GetSize((w,h)=>{
-                     width = w;
-                     height =h;
-                });
-            if(width!=0&&height!=0)
+            player.GetSize((w, h) =>
+            {
+                width = w;
+                height = h;
+            });
+            if (width > 0 && height > 0)
             {
                 Debug.LogWarning(" _width:" + width + " _height:" + height);
                 player.SetFormat();
+                player.Play();
                 break;
             }
-            if(Time.time -time>=5f)
+            if (Time.time - time >= 5f)
             {
                 player.Stop();
                 break;

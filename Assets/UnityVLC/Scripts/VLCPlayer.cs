@@ -52,7 +52,7 @@ namespace VLC
                     "--no-ignore-config",
                     "--no-xlib",
                     "--no-video-title-show",
-                    "--no-osd"
+                    "--no-osd",
                 };
             _libvlc = LibVLC.libvlc_new(args1.Length, args1);
             if (_libvlc == IntPtr.Zero)
@@ -87,7 +87,7 @@ namespace VLC
             _event_manager = LibVLC.libvlc_media_player_event_manager(_mediaPlayer);
             attachEvents(_event_manager);
             LibVLC.libvlc_media_player_set_media(_mediaPlayer, _media);
-            LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_local, 10000);
+            LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_network, 10000);
             //LibVLC.libvlc_media_release(_media);
 
             _videoFormat = VideoFormat;
@@ -95,9 +95,9 @@ namespace VLC
             _videoLock = VideoLock;
             _videoUnlock = VideoUnlock;
             _videoDisplay = VideoDisplay;
-            
-            //LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
-            
+
+            LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
+
             //LibVLC.libvlc_video_set_format_callbacks(_mediaPlayer,_videoFormat, null); //_videoClean);
             //LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
@@ -217,18 +217,23 @@ namespace VLC
             }
         }
 
-        public int GetSize(Action<uint,uint> action = null)
+        public int GetSize(Action<uint, uint> action = null)
         {
             int code = LibVLC.libvlc_video_get_size(_mediaPlayer, 0, ref _width, ref _height);
-            //Debug.LogWarning("code:"+code +" _width:" + _width + " _height:" + _height);
-            action?.Invoke(_width,_height);
+            if (_width == 0 || _height == 0)
+            {
+                code = -1;
+                return code;
+            }
+            Debug.LogWarning("code:" + code + " _width:" + _width + " _height:" + _height);
+            action?.Invoke(_width, _height);
             return code;
         }
 
         public void SetFormat()
         {
             LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
-            LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
+            //LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
         }
 
         /// <summary>
@@ -243,13 +248,13 @@ namespace VLC
                 {
                     return false;
                 }
-
+                //LibVLC.libvlc_media_player_set_hwnd(_mediaPlayer, (System.IntPtr)0);
                 if (0 != LibVLC.libvlc_media_player_play(_mediaPlayer))
                 {
                     return false;
                 }
                 length = GetMediaLength();
-                Debug.Log("length:" + length); 
+                Debug.Log("length:" + length);
                 return true;
             }
             catch (Exception e)

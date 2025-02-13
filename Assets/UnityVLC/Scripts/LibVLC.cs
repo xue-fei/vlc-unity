@@ -98,6 +98,9 @@ namespace VLC
         internal static extern void libvlc_media_release(IntPtr media);
 
         [DllImport(pluginName)]
+        internal static extern void libvlc_media_player_set_hwnd(IntPtr mediaPlayer, IntPtr drawable);
+
+        [DllImport(pluginName)]
         internal static extern void libvlc_media_player_set_media(IntPtr mediaPlayer, IntPtr media);
 
         [DllImport(pluginName)]
@@ -121,6 +124,9 @@ namespace VLC
         [DllImport(pluginName)]
         internal static extern int libvlc_media_parse_with_options(IntPtr mediaPlayer, libvlc_media_parse_flag_t parse_flag, int timeout);
 
+        //LibVLC 4.0.0 or later
+        [DllImport(pluginName)]
+        internal static extern int libvlc_media_parse_request(IntPtr mediaPlayer, libvlc_media_parse_flag_t parse_flag, int timeout);
     }
 
     public enum libvlc_media_parse_flag_t
