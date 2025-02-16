@@ -28,8 +28,8 @@ public class Example : MonoBehaviour
     void Start()
     {
         Loom.Initialize();
-        //string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
-        string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
+        string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
+        //string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
         //string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
         //string videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
         //本地视频
@@ -117,8 +117,20 @@ public class Example : MonoBehaviour
             if (Time.time - time >= 5f)
             {
                 player.Stop();
+                Debug.LogWarning("无法播放");
                 break;
             }
+            yield return new WaitForSeconds(0.1f);
+        }
+        if (player.GetSize() == 0)
+        {
+            player.GetSize((w, h) =>
+            {
+                width = w;
+                height = h;
+            });
+            player.SetFormat();
+            player.Play();
         }
         yield return null;
     }
