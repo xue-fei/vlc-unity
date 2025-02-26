@@ -188,13 +188,23 @@ namespace VLC
 
         }
 
+        static int defaultWidth = 1920;
+        static int defaultHeight = 1080;
+
         [MonoPInvokeCallback(typeof(libvlc_video_lock_cb))]
         public static IntPtr VideoLock(IntPtr opaque, ref IntPtr planes)
         {
             _locked = true;
             if (_imageIntPtr == IntPtr.Zero)
             {
-                _imageIntPtr = Marshal.AllocHGlobal((int)(_width * _channels * _height));
+                if (_width == 0 || _height == 0)
+                {
+                    _imageIntPtr = Marshal.AllocHGlobal((int)(defaultWidth * _channels * defaultHeight));
+                }
+                else
+                {
+                    _imageIntPtr = Marshal.AllocHGlobal((int)(_width * _channels * _height));
+                }
             }
             planes = _imageIntPtr;
             return _imageIntPtr;
