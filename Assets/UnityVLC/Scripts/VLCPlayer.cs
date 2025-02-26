@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace VLC
 {
-    using Debug = UnityEngine.Debug;
-
     public class VLCPlayer
     {
         private static IntPtr _libvlc;
@@ -30,10 +28,6 @@ namespace VLC
         private GCHandle _gcHandle;
         private static bool _locked = true;
         private static bool _update = false;
-        /// <summary>
-        /// 视频播放进度
-        /// </summary>
-        public static Action<float, string> OnProgress;
         // 事件列表
         List<libvlc_event_e> events = new List<libvlc_event_e>();
 
@@ -374,16 +368,19 @@ namespace VLC
             LibVLC.libvlc_media_player_set_position(_mediaPlayer, posf, false);
         }
 
-        public static void GetProgress()
+        static long len;
+        static string time;
+        static float progress;
+        public static void GetProgress(Action<float, string> action = null)
         {
-            long len = GetPosition();
-            string time = GetHMS((int)len);
-            float progress = len / length;
+            len = GetPosition();
+            time = GetHMS((int)len);
+            progress = len / length;
             Loom.QueueOnMainThread(() =>
             {
-                if (OnProgress != null)
+                if (action != null)
                 {
-                    OnProgress(progress, time);
+                    action(progress, time);
                 }
             });
         }
