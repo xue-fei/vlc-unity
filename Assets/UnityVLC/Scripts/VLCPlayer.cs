@@ -37,7 +37,6 @@ namespace VLC
         public VLCPlayer(uint width, uint height, string url)
         {
             //lib = LibVLC.LoadLibrary(@"file:///home/xuefei/MyProject/UnityVLC/Assets/Plugins/Linux/x86_64/libvlc.so");
-            Debug.Log("Playing: " + url);
             _width = width;
             _height = height;
             _gcHandle = GCHandle.Alloc(this);
