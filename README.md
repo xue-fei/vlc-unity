@@ -14,4 +14,12 @@ export LD_LIBRARY_PATH
 source /etc/profile  
 
 示例是播放湖南卫视的rtmp视频流——此视频流地址已不可用
-![Image text](https://images.gitee.com/uploads/images/2019/0626/100814_893f7478_80624.jpeg)
+![Image text](https://images.gitee.com/uploads/images/2019/0626/100814_893f7478_80624.jpeg)  
+
+
+本地rtsp测试     
+先启动mediamtx    
+再用ffmpeg推流   
+ffmpeg -re -i G:\MyProject\UnityVLC\Assets\StreamingAssets\test.mp4 -c copy -rtsp_transport tcp -f rtsp rtsp://127.0.0.1:8554/stream    
+最后再播放   
+![输入图片说明](%E6%9C%AC%E5%9C%B0rtsp%E6%B5%8B%E8%AF%95.png)
