@@ -97,6 +97,8 @@ public class UVideoPlayer : MonoBehaviour
             });
             player.SetFormat();
             player.Play();
+            player.Stop();
+            player.Play();
         }
         yield return null;
     }
