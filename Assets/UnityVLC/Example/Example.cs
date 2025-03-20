@@ -29,9 +29,9 @@ public class Example : MonoBehaviour
     {
         Loom.Initialize();
         //string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
-        //string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
+        string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
         //string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
-        string videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
+        //string videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
         //string videoPath = "rtsp://127.0.0.1:8554/stream";
         //本地视频
         //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
@@ -129,6 +129,8 @@ public class Example : MonoBehaviour
                 height = h;
             });
             player.SetFormat();
+            player.Play();
+            player.Stop();
             player.Play();
         }
         yield return null;
