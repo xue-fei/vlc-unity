@@ -42,6 +42,7 @@ public class UVideoPlayer : MonoBehaviour
                     texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
                     image.material.mainTexture = texture;
                     image.SetMaterialDirty();
+                    image.SetNativeSize();
                 }
             }
             else
