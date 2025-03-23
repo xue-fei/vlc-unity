@@ -23,6 +23,7 @@ public class Example : MonoBehaviour
     public Button btnStart;
     public Button btnPause;
     public Button btnStop;
+    public AspectRatioFitter aspectRatio;
 
     // Use this for initialization
     void Start()
@@ -89,6 +90,7 @@ public class Example : MonoBehaviour
     private void OnProgress(float progress, string time)
     {
         text.text = time;
+        slider.value = progress;
     }
 
     void OnDrag(BaseEventData data)
@@ -105,6 +107,7 @@ public class Example : MonoBehaviour
             {
                 width = w;
                 height = h;
+                aspectRatio.aspectRatio = (float)width / (float)height;
             });
             if (width > 0 && height > 0)
             {
@@ -119,7 +122,7 @@ public class Example : MonoBehaviour
                 Debug.LogWarning("无法播放");
                 break;
             }
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
         }
         if (player.GetSize() == 0)
         {
@@ -127,11 +130,12 @@ public class Example : MonoBehaviour
             {
                 width = w;
                 height = h;
+                aspectRatio.aspectRatio = (float)width / (float)height;
             });
             player.SetFormat();
-            player.Play();
             player.Stop();
             player.Play();
+            yield break;
         }
         yield return null;
     }
