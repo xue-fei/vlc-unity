@@ -13,6 +13,7 @@ public class UVideoPlayer : MonoBehaviour
     private uint height = 0;
 
     public Button btnPlay;
+    public AspectRatioFitter aspectRatio;
 
     // Start is called before the first frame update
     void Start()
@@ -40,9 +41,9 @@ public class UVideoPlayer : MonoBehaviour
                 {
                     Debug.LogWarning("_width:" + width + " _height:" + height);
                     texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
-                    image.material.mainTexture = texture;
-                    image.SetMaterialDirty();
-                    image.SetNativeSize();
+                    //image.material.mainTexture = texture;
+                    //image.SetMaterialDirty();
+                    //image.SetNativeSize();
                 }
             }
             else
@@ -52,7 +53,7 @@ public class UVideoPlayer : MonoBehaviour
                     VLCPlayer.GetProgress(OnProgress);
                     texture.LoadRawTextureData(img);
                     texture.Apply(false);
-                    //image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                    image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                 }
             }
         }
@@ -72,6 +73,8 @@ public class UVideoPlayer : MonoBehaviour
             {
                 width = w;
                 height = h;
+                image.SetNativeSize();
+                aspectRatio.aspectRatio = (float)width / (float)height;
             });
             if (width > 0 && height > 0)
             {
@@ -94,9 +97,10 @@ public class UVideoPlayer : MonoBehaviour
             {
                 width = w;
                 height = h;
+                image.SetNativeSize();
+                aspectRatio.aspectRatio = (float)width / (float)height;
             });
             player.SetFormat();
-            player.Play();
             player.Stop();
             player.Play();
         }
