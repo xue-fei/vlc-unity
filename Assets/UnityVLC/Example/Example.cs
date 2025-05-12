@@ -79,7 +79,7 @@ public class Example : MonoBehaviour
             {
                 if (width > 0 && height > 0)
                 {
-                    VLCPlayer.GetProgress(OnProgress);
+                    player.GetProgress(OnProgress);
                     texture.LoadRawTextureData(img);
                     texture.Apply(false);
                 }

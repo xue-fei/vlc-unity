@@ -50,7 +50,7 @@ public class UVideoPlayer : MonoBehaviour
             {
                 if (width > 0 && height > 0)
                 {
-                    VLCPlayer.GetProgress(OnProgress);
+                    player.GetProgress(OnProgress);
                     texture.LoadRawTextureData(img);
                     texture.Apply(false);
                     image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));

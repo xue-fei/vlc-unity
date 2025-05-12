@@ -357,7 +357,7 @@ namespace VLC
             return length;
         }
 
-        public static Int64 GetPosition()
+        public Int64 GetPosition()
         {
             return LibVLC.libvlc_media_player_get_time(_mediaPlayer);
         }
@@ -367,21 +367,18 @@ namespace VLC
             LibVLC.libvlc_media_player_set_position(_mediaPlayer, posf, false);
         }
 
-        static long len;
-        static string time;
-        static float progress;
-        public static void GetProgress(Action<float, string> action = null)
+        long len;
+        string time;
+        float progress;
+        public void GetProgress(Action<float, string> action = null)
         {
             len = GetPosition();
             time = GetHMS((int)len);
             progress = len / length;
-            Loom.QueueOnMainThread(() =>
+            if (action != null)
             {
-                if (action != null)
-                {
-                    action(progress, time);
-                }
-            });
+                action(progress, time);
+            }
         }
 
         public string GetVersion()
@@ -415,7 +412,7 @@ namespace VLC
             _libvlc = IntPtr.Zero;
         }
 
-        private static string GetHMS(int length)
+        private string GetHMS(int length)
         {
             TimeSpan ts = new TimeSpan(0, 0, 0, 0, length);
 
