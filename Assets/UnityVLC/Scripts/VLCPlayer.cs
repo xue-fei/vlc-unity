@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using AOT;
 using Debug = UnityEngine.Debug;
 
 namespace VLC
 {
     public class VLCPlayer
     {
-        private static IntPtr _libvlc;
-        private static IntPtr _media;
-        private static IntPtr _mediaPlayer;
-        private static IntPtr _event_manager;
-        private static libvlc_video_cleanup_cb _videoClean;
-        private static libvlc_video_format_cb _videoFormat;
-        private static libvlc_video_lock_cb _videoLock;
-        private static libvlc_video_unlock_cb _videoUnlock;
-        private static libvlc_video_display_cb _videoDisplay;
+        private IntPtr _libvlc;
+        private IntPtr _media;
+        private IntPtr _mediaPlayer;
+        private IntPtr _event_manager;
+        private libvlc_video_cleanup_cb _videoClean;
+        private libvlc_video_format_cb _videoFormat;
+        private libvlc_video_lock_cb _videoLock;
+        private libvlc_video_unlock_cb _videoUnlock;
+        private libvlc_video_display_cb _videoDisplay;
         private static uint _width = 0;
         private static uint _height = 0;
         private static uint _channels = 3;
@@ -33,7 +34,6 @@ namespace VLC
 
         #region 公开函数
 
-        IntPtr lib;
         public VLCPlayer(uint width, uint height, string url)
         {
             //lib = LibVLC.LoadLibrary(@"file:///home/xuefei/MyProject/UnityVLC/Assets/Plugins/Linux/x86_64/libvlc.so");

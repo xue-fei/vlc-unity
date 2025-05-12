@@ -48,7 +48,7 @@ public class UVideoPlayer : MonoBehaviour
             }
             else
             {
-                if (width > 0 && height > 0)
+                if (width > 0 && height > 0 && img != null)
                 {
                     player.GetProgress(OnProgress);
                     texture.LoadRawTextureData(img);
