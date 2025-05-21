@@ -17,18 +17,18 @@ namespace VLC
         private libvlc_video_lock_cb _videoLock;
         private libvlc_video_unlock_cb _videoUnlock;
         private libvlc_video_display_cb _videoDisplay;
-        private static uint _width = 0;
-        private static uint _height = 0;
-        private static uint _channels = 3;
-        private static IntPtr _imageIntPtr;
-        private static byte[] _imageData;
+        private uint _width = 0;
+        private uint _height = 0;
+        private uint _channels = 3;
+        private IntPtr _imageIntPtr;
+        private byte[] _imageData;
         /// <summary>
         /// 视频长度(毫秒)
         /// </summary>
-        private static float length = 0;
+        private float length = 0;
         private GCHandle _gcHandle;
-        private static bool _locked = true;
-        private static bool _update = false;
+        private bool _locked = true;
+        private bool _update = false;
         // 事件列表
         List<libvlc_event_e> events = new List<libvlc_event_e>();
 
@@ -127,28 +127,28 @@ namespace VLC
             switch (e.type)
             {
                 case libvlc_event_e.libvlc_MediaPlayerOpening:
-                    Debug.LogWarning("libvlc_MediaPlayerOpening");
+                    //Debug.LogWarning("libvlc_MediaPlayerOpening");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerBuffering:
-                    Debug.LogWarning("libvlc_MediaPlayerBuffering");
+                    //Debug.LogWarning("libvlc_MediaPlayerBuffering");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPlaying:
-                    Debug.LogWarning("libvlc_MediaPlayerPlaying");
+                    //Debug.LogWarning("libvlc_MediaPlayerPlaying");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPaused:
-                    Debug.LogWarning("libvlc_MediaPlayerPaused");
+                    //Debug.LogWarning("libvlc_MediaPlayerPaused");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerStopped:
-                    Debug.LogWarning("libvlc_MediaPlayerStopped");
+                    //Debug.LogWarning("libvlc_MediaPlayerStopped");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPositionChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerPositionChanged");
+                    //Debug.LogWarning("libvlc_MediaPlayerPositionChanged");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerTimeChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerTimeChanged");
+                    //Debug.LogWarning("libvlc_MediaPlayerTimeChanged");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerLengthChanged:
-                    Debug.LogWarning("libvlc_MediaPlayerLengthChanged");
+                    //Debug.LogWarning("libvlc_MediaPlayerLengthChanged");
                     break;
                 default:
                     //Debug.LogWarning(e.type);
@@ -187,36 +187,43 @@ namespace VLC
         [MonoPInvokeCallback(typeof(libvlc_video_lock_cb))]
         public static IntPtr VideoLock(IntPtr opaque, ref IntPtr planes)
         {
-            _locked = true;
-            if (_imageIntPtr == IntPtr.Zero)
+            // 通过 opaque 获取实例
+            GCHandle handle = GCHandle.FromIntPtr(opaque);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            instance._locked = true;
+            if (instance._imageIntPtr == IntPtr.Zero)
             {
-                if (_width == 0 || _height == 0)
+                if (instance._width == 0 || instance._height == 0)
                 {
-                    _imageIntPtr = Marshal.AllocHGlobal((int)(defaultWidth * _channels * defaultHeight));
+                    instance._imageIntPtr = Marshal.AllocHGlobal((int)(defaultWidth * instance._channels * defaultHeight));
                 }
                 else
                 {
-                    _imageIntPtr = Marshal.AllocHGlobal((int)(_width * _channels * _height));
+                    instance._imageIntPtr = Marshal.AllocHGlobal((int)(instance._width * instance._channels * instance._height));
                 }
             }
-            planes = _imageIntPtr;
-            return _imageIntPtr;
+            planes = instance._imageIntPtr;
+            return instance._imageIntPtr;
         }
 
         [MonoPInvokeCallback(typeof(libvlc_video_unlock_cb))]
         public static void VideoUnlock(IntPtr opaque, IntPtr picture, ref IntPtr planes)
         {
-            _locked = false;
+            GCHandle handle = GCHandle.FromIntPtr(opaque);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            instance._locked = false;
         }
 
         [MonoPInvokeCallback(typeof(libvlc_video_display_cb))]
         public static void VideoDisplay(IntPtr opaque, IntPtr picture)
         {
-            if (!_update)
+            GCHandle handle = GCHandle.FromIntPtr(opaque);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            if (!instance._update)
             {
-                _imageData = new byte[_width * _channels * _height];
-                Marshal.Copy(picture, _imageData, 0, (int)(_width * _channels * _height));
-                _update = true;
+                instance._imageData = new byte[instance._width * instance._channels * instance._height];
+                Marshal.Copy(picture, instance._imageData, 0, (int)(instance._width * instance._channels * instance._height));
+                instance._update = true;
             }
         }
 

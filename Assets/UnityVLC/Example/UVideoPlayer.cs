@@ -8,7 +8,7 @@ public class UVideoPlayer : MonoBehaviour
     public Image image;
     public string videoPath;
     private VLCPlayer player;
-    public Texture2D texture;
+    private Texture2D texture;
     private uint width = 0;
     private uint height = 0;
 
