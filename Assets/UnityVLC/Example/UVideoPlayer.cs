@@ -41,9 +41,9 @@ public class UVideoPlayer : MonoBehaviour
                 {
                     Debug.LogWarning("_width:" + width + " _height:" + height);
                     texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
-                    //image.material.mainTexture = texture;
-                    //image.SetMaterialDirty();
-                    //image.SetNativeSize();
+                    image.material.mainTexture = texture;
+                    image.SetMaterialDirty();
+                    image.SetNativeSize();
                 }
             }
             else
@@ -53,7 +53,7 @@ public class UVideoPlayer : MonoBehaviour
                     player.GetProgress(OnProgress);
                     texture.LoadRawTextureData(img);
                     texture.Apply(false);
-                    image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                    image.material.mainTexture = texture;
                 }
             }
         }
