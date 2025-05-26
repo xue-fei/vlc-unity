@@ -8,6 +8,7 @@ public class UVideoPlayer : MonoBehaviour
     public Image image;
     public string videoPath;
     private VLCPlayer player;
+    public Material material;
     private Texture2D texture;
     private uint width = 0;
     private uint height = 0;
@@ -41,6 +42,7 @@ public class UVideoPlayer : MonoBehaviour
                 {
                     Debug.LogWarning("_width:" + width + " _height:" + height);
                     texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
+                    image.material = new Material(material);
                     image.material.mainTexture = texture;
                     image.SetMaterialDirty();
                     image.SetNativeSize();
