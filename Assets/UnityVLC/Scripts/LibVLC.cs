@@ -13,12 +13,12 @@ namespace VLC
         private const string pluginName = "libvlc";
 #elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
         private const string pluginName = "libvlc.so";
+#elif UNITY_ANDROID && !UNITY_EDITOR
+        private const string pluginName = "libvlc.so";
+#else
+        
 #endif
-        [DllImport("libdl", EntryPoint = "dlopen")]
-        internal extern static IntPtr LoadLibrary(string path);
-        [DllImport("libdl", EntryPoint = "dlclose")]
-        internal extern static int CloseLibrary(IntPtr handle);
-
+         
         [DllImport(pluginName)]
         internal static extern IntPtr libvlc_get_version();
 
