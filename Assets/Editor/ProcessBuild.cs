@@ -14,9 +14,11 @@ public class ProcessBuild
     [PostProcessBuildAttribute(88)]
     public static void onPostProcessBuild(BuildTarget buildTarget, string path)
     {
-        if (buildTarget == BuildTarget.StandaloneWindows64 || buildTarget == BuildTarget.StandaloneLinux64)
+        //|| buildTarget == BuildTarget.StandaloneWindows
+        if (buildTarget == BuildTarget.StandaloneWindows64
+            || buildTarget == BuildTarget.StandaloneLinux64)
         {
-           
+
         }
         else
         {
@@ -53,17 +55,16 @@ public class ProcessBuild
             Debug.LogWarning("Win_x86_64");
             Copy(Application.dataPath + "/Plugins/Win/x86_64/", disDirStr);
         }
+        //if (buildTarget == BuildTarget.StandaloneWindows)
+        //{
+        //    Debug.LogWarning("Win_x86");
+        //    Copy(Application.dataPath + "/Plugins/Win/x86/", disDirStr);
+        //}
         if (buildTarget == BuildTarget.StandaloneLinux64)
         {
             Debug.LogWarning("Linux_x86_64");
             Copy(Application.dataPath + "/Plugins/Linux/x86_64/", disDirStr);
         }
-        // 2024.7.9移除x86
-        //if (buildTarget == BuildTarget.StandaloneWindows)
-        //{
-        //    Debug.LogWarning("x86");
-        //    Copy(Application.dataPath + "/Plugins/x86/", disDirStr);
-        //}
         #endregion
     }
 
