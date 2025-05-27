@@ -54,48 +54,51 @@ public class SetDll : EditorWindow
             //Debug.Log("文件路径：" + strTempPath);
             string[] strTemp = strTempPath.Split("Assets");
             string assetPath = "Assets/" + strTemp[1];
-            PluginImporter plugin = AssetImporter.GetAtPath(assetPath) as PluginImporter;
-            plugin.SetCompatibleWithEditor(false);
-            plugin.SetCompatibleWithAnyPlatform(false);
+            PluginImporter pluginImporter = AssetImporter.GetAtPath(assetPath) as PluginImporter;
+            pluginImporter.SetCompatibleWithEditor(false);
+            pluginImporter.SetCompatibleWithAnyPlatform(false);
 
-            plugin.SetCompatibleWithPlatform(BuildTarget.Android, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.iOS, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows64, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, false);
-            plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneOSX, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.iOS, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows64, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, false);
+            pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneOSX, false);
 
             if (buildTarget == BuildTarget.StandaloneWindows)
             {
-                plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows, true);
-                plugin.SetPlatformData(BuildTarget.StandaloneWindows, "CPU", "x86");
+                pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows, true);
+                pluginImporter.SetPlatformData(BuildTarget.StandaloneWindows, "CPU", "x86");
             }
             if (buildTarget == BuildTarget.StandaloneWindows64)
             {
-                plugin.SetCompatibleWithEditor(true);
-                plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows64, true);
-                plugin.SetPlatformData(BuildTarget.StandaloneWindows64, "CPU", "x86_64");
+                pluginImporter.SetCompatibleWithEditor(true);
+                pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows64, true);
+                pluginImporter.SetPlatformData(BuildTarget.StandaloneWindows64, "CPU", "x86_64");
             }
             if (buildTarget == BuildTarget.StandaloneLinux64)
             {
-                plugin.SetCompatibleWithEditor(true);
-                plugin.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, true);
-                plugin.SetPlatformData(BuildTarget.StandaloneLinux64, "CPU", "x86_64");
+                pluginImporter.SetCompatibleWithEditor(true);
+                pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, true);
+                pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "CPU", "x86_64");
+                pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "OS", "Linux");
+                pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "Standalone", "Linux64");
             }
             if (buildTarget == BuildTarget.Android)
             {
-                plugin.SetCompatibleWithPlatform(BuildTarget.Android, true);
+                pluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, true);
                 if (assetPath.Contains("arm64-v8a"))
                 {
-                    plugin.SetPlatformData(BuildTarget.Android, "CPU", "ARM64");
+                    pluginImporter.SetPlatformData(BuildTarget.Android, "CPU", "ARM64");
                 }
                 if (assetPath.Contains("armeabi-v7a"))
                 {
-                    plugin.SetPlatformData(BuildTarget.Android, "CPU", "ARMv7");
+                    pluginImporter.SetPlatformData(BuildTarget.Android, "CPU", "ARMv7");
                 }
             }
-            plugin.SaveAndReimport();
+            EditorUtility.SetDirty(pluginImporter);
+            pluginImporter.SaveAndReimport();
         }
         AssetDatabase.Refresh();
     }
