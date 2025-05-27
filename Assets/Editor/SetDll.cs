@@ -41,8 +41,11 @@ public class SetDll : EditorWindow
             Debug.LogError("找不到文件夹路径！");
             return;
         }
-        buildTarget = BuildTarget.Android;
-        suffix = ".so";
+        if (buildTarget == BuildTarget.Android
+            || buildTarget == BuildTarget.StandaloneLinux64)
+        {
+            suffix = ".so";
+        }
         string[] files = Directory.GetFiles(dllPath, "*", SearchOption.AllDirectories);
         foreach (string file in files)
         {
@@ -54,6 +57,7 @@ public class SetDll : EditorWindow
             PluginImporter plugin = AssetImporter.GetAtPath(assetPath) as PluginImporter;
             plugin.SetCompatibleWithEditor(false);
             plugin.SetCompatibleWithAnyPlatform(false);
+
             plugin.SetCompatibleWithPlatform(BuildTarget.Android, false);
             plugin.SetCompatibleWithPlatform(BuildTarget.iOS, false);
             plugin.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
