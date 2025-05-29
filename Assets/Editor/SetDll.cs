@@ -51,7 +51,7 @@ public class SetDll : EditorWindow
         {
             if (!file.EndsWith(suffix)) continue;
             string strTempPath = file.Replace(@"\", "/");
-            //Debug.Log("文件路径：" + strTempPath);
+            Debug.Log("文件路径：" + strTempPath);
             string[] strTemp = strTempPath.Split("Assets");
             string assetPath = "Assets/" + strTemp[1];
             PluginImporter pluginImporter = AssetImporter.GetAtPath(assetPath) as PluginImporter;
@@ -83,7 +83,6 @@ public class SetDll : EditorWindow
                 pluginImporter.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, true);
                 pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "CPU", "x86_64");
                 pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "OS", "Linux");
-                pluginImporter.SetPlatformData(BuildTarget.StandaloneLinux64, "Standalone", "Linux64");
             }
             if (buildTarget == BuildTarget.Android)
             {

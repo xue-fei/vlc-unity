@@ -8,7 +8,6 @@ public class UVideoPlayer : MonoBehaviour
     public Image image;
     public string videoPath;
     private VLCPlayer player;
-    public Material material;
     private Texture2D texture;
     private uint width = 0;
     private uint height = 0;
@@ -20,13 +19,14 @@ public class UVideoPlayer : MonoBehaviour
     void Start()
     {
         Loom.Initialize();
-        player = new VLCPlayer(width, height, videoPath);
-        StartCoroutine(Play());
+
+        Play();
     }
 
-    IEnumerator Play()
+    void Play()
     {
-        yield return new WaitForSeconds(1f);
+        player = new VLCPlayer();
+        player.Init(width, height, videoPath);
         player.Play();
         StartCoroutine(GetSize());
     }
@@ -42,7 +42,7 @@ public class UVideoPlayer : MonoBehaviour
                 {
                     Debug.LogWarning("_width:" + width + " _height:" + height);
                     texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
-                    image.material = new Material(material);
+                    image.material = new Material(Shader.Find("Custom/SingleShader"));
                     image.material.mainTexture = texture;
                     image.SetMaterialDirty();
                     image.SetNativeSize();

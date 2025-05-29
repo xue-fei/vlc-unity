@@ -43,6 +43,7 @@ namespace VLC
                     "--no-xlib",
                     "--no-video-title-show",
                     "--no-osd",
+                    "--video-filter=adjust",
                 };
             _libvlc = LibVLC.libvlc_new(args1.Length, args1);
             if (_libvlc == IntPtr.Zero)
@@ -58,7 +59,7 @@ namespace VLC
                     //":directx-use-sysmem",
                     //":directx-overlay",
                     //":spect-show-original",
-                    ":avcodec-threads=124" 
+                    ":avcodec-threads=124"
                     //捕捉屏幕的相关参数
                     //":screen-fps=30",
                     //":screen-width=1920",
