@@ -7,7 +7,8 @@ using VLC;
 
 public class Example : MonoBehaviour
 {
-    private VLCPlayer player;
+    public string videoPath;
+    private VLCPlayer player = null;
     /// <summary>
     /// 视频宽
     /// </summary>
@@ -24,24 +25,38 @@ public class Example : MonoBehaviour
     public Button btnPause;
     public Button btnStop;
     public AspectRatioFitter aspectRatio;
+    public InputField inputField;
 
     // Use this for initialization
     void Start()
     {
         Loom.Initialize();
-        //string videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
-        string videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
-        //string videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
-        //string videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
-        //string videoPath = "rtsp://127.0.0.1:8554/stream";
+        //videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
+        //videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
+        // videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
+        // videoPath = "http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4";
+        // videoPath = "rtsp://127.0.0.1:8554/stream";
         //本地视频
-        //string videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
+        // videoPath = @"file:///" + Application.streamingAssetsPath + "/test.mp4";
         //捕捉屏幕
-        //string videoPath = "screen://";
-        player = new VLCPlayer(width, height, videoPath);
+        // videoPath = "screen://";
 
         btnStart.onClick.AddListener(delegate ()
         {
+            if (string.IsNullOrEmpty(inputField.text))
+            {
+                return;
+            }
+            if (!string.Equals(videoPath, inputField.text))
+            {
+                if (player != null)
+                {
+                    Dispose();
+                }
+                videoPath = inputField.text;
+                player = new VLCPlayer();
+                player.Init(width, height, inputField.text);
+            }
             OnCtrl(btnStart);
         });
         btnPause.onClick.AddListener(delegate ()
@@ -101,7 +116,7 @@ public class Example : MonoBehaviour
     IEnumerator GetSize()
     {
         float time = Time.time;
-        while (player.GetSize() == -1)
+        while (true)
         {
             player.GetSize((w, h) =>
             {
@@ -118,13 +133,14 @@ public class Example : MonoBehaviour
             }
             if (Time.time - time >= 5f)
             {
-                player.Stop();
+                Dispose();
                 Debug.LogWarning("无法播放");
                 break;
             }
-            yield return new WaitForSeconds(0.01f);
+            Debug.Log(Time.time);
+            yield return new WaitForSeconds(0.5f);
         }
-        if (player.GetSize() == 0)
+        if (player != null && player.GetSize() == 0)
         {
             player.GetSize((w, h) =>
             {
@@ -167,19 +183,33 @@ public class Example : MonoBehaviour
         {
             if (player.IsPlaying())
             {
-                player.Stop();
-                width = 0;
-                height = 0;
+                Dispose();
             }
+        }
+    }
+
+    private void Dispose()
+    {
+        if (player != null)
+        {
+            if (player.IsPlaying())
+            {
+                player.Stop();
+            }
+            player.Dispose();
+            player = null;
+            if (texture != null)
+            {
+                DestroyImmediate(texture);
+            }
+            width = 0;
+            height = 0;
+            videoPath = "";
         }
     }
 
     private void OnDestroy()
     {
-        if (player.IsPlaying())
-        {
-            player.Stop();
-        }
-        player?.Dispose();
+        Dispose();
     }
 }

@@ -12,8 +12,6 @@ namespace VLC
         private IntPtr _media;
         private IntPtr _mediaPlayer;
         private IntPtr _event_manager;
-        private libvlc_video_cleanup_cb _videoClean;
-        private libvlc_video_format_cb _videoFormat;
         private libvlc_video_lock_cb _videoLock;
         private libvlc_video_unlock_cb _videoUnlock;
         private libvlc_video_display_cb _videoDisplay;
@@ -34,9 +32,8 @@ namespace VLC
 
         #region 公开函数
 
-        public VLCPlayer(uint width, uint height, string url)
+        public void Init(uint width, uint height, string url)
         {
-            //lib = LibVLC.LoadLibrary(@"file:///home/xuefei/MyProject/UnityVLC/Assets/Plugins/Linux/x86_64/libvlc.so");
             _width = width;
             _height = height;
             _gcHandle = GCHandle.Alloc(this);
@@ -83,16 +80,11 @@ namespace VLC
             LibVLC.libvlc_media_parse_with_options(_media, libvlc_media_parse_flag_t.libvlc_media_parse_network, 10000);
             //LibVLC.libvlc_media_release(_media);
 
-            _videoFormat = VideoFormat;
-            _videoClean = VideoClean;
             _videoLock = VideoLock;
             _videoUnlock = VideoUnlock;
             _videoDisplay = VideoDisplay;
 
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
-
-            //LibVLC.libvlc_video_set_format_callbacks(_mediaPlayer,_videoFormat, null); //_videoClean);
-            //LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
 
         void attachEvents(IntPtr eventManager)
@@ -243,7 +235,6 @@ namespace VLC
         public void SetFormat()
         {
             LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
-            //LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
         }
 
         /// <summary>
