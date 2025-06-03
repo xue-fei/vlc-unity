@@ -12,6 +12,8 @@ logLevel: info
 logDestinations: [stdout]
 # If "file" is in logDestinations, this is the file which will receive the logs.
 logFile: mediamtx.log
+# If "syslog" is in logDestinations, use prefix for logs.
+sysLogPrefix: mediamtx
 
 # Timeout of read operations.
 readTimeout: 10s
@@ -87,6 +89,7 @@ authInternalUsers:
 # {
 #   "user": "user",
 #   "password": "password",
+#   "token": "token",
 #   "ip": "ip",
 #   "action": "publish|read|playback|api|metrics|pprof",
 #   "path": "path",
@@ -109,7 +112,6 @@ authHTTPExclude:
 # This JWT must contain the claim "mediamtx_permissions" with permissions,
 # for instance:
 # {
-#  ...
 #  "mediamtx_permissions": [
 #     {
 #       "action": "publish",
@@ -117,12 +119,24 @@ authHTTPExclude:
 #     }
 #   ]
 # }
-# Users are expected to pass the JWT in the Authorization header or as a query parameter.
+# Users are expected to pass the JWT in the Authorization header, password or query parameter.
 # This is the JWKS URL that will be used to pull (once) the public key that allows
 # to validate JWTs.
 authJWTJWKS:
+# If the JWKS URL has a self-signed or invalid certificate,
+# you can provide the fingerprint of the certificate in order to
+# validate it anyway. It can be obtained by running:
+# openssl s_client -connect jwt_jwks_domain:443 </dev/null 2>/dev/null | sed -n '/BEGIN/,/END/p' > server.crt
+# openssl x509 -in server.crt -noout -fingerprint -sha256 | cut -d "=" -f2 | tr -d ':'
+authJWTJWKSFingerprint:
 # name of the claim that contains permissions.
 authJWTClaimKey: mediamtx_permissions
+# Actions to exclude from JWT-based authentication.
+# Format is the same as the one of user permissions.
+authJWTExclude: []
+# allow passing the JWT through query parameters of HTTP requests (i.e. ?jwt=JWT).
+# This is a security risk.
+authJWTInHTTPQuery: true
 
 ###############################################
 # Global settings -> Control API
@@ -449,6 +463,8 @@ pathDefaults:
   # If the stream is not available, redirect readers to this path.
   # It can be can be a relative path (i.e. /otherstream) or an absolute RTSP URL.
   fallback:
+  # Route original absolute timestamps of RTSP and WebRTC frames, instead of replacing them.
+  useAbsoluteTimestamp: false
 
   ###############################################
   # Default path settings -> Record
@@ -457,7 +473,8 @@ pathDefaults:
   record: no
   # Path of recording segments.
   # Extension is added automatically.
-  # Available variables are %path (path name), %Y %m %d %H %M %S %f %s (time in strftime format)
+  # Available variables are %path (path name), %Y %m %d (year, month, day),
+  # %H %M %S (hours, minutes, seconds), %f (microseconds), %s (unix epoch).
   recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
   # Format of recorded segments.
   # Available formats are "fmp4" (fragmented MP4) and "mpegts" (MPEG-TS).
@@ -504,70 +521,73 @@ pathDefaults:
   ###############################################
   # Default path settings -> Redirect source (when source is "redirect")
 
-  # RTSP URL which clients will be redirected to.
+  # path which clients will be redirected to.
+  # It can be can be a relative path (i.e. /otherstream) or an absolute RTSP URL.
   sourceRedirect:
 
   ###############################################
   # Default path settings -> Raspberry Pi Camera source (when source is "rpiCamera")
 
-  # ID of the camera
+  # ID of the camera.
   rpiCameraCamID: 0
-  # Width of frames
+  # Whether this is a secondary stream.
+  rpiCameraSecondary: false
+  # Width of frames.
   rpiCameraWidth: 1920
-  # Height of frames
+  # Height of frames.
   rpiCameraHeight: 1080
-  # Flip horizontally
+  # Flip horizontally.
   rpiCameraHFlip: false
-  # Flip vertically
+  # Flip vertically.
   rpiCameraVFlip: false
-  # Brightness [-1, 1]
+  # Brightness [-1, 1].
   rpiCameraBrightness: 0
-  # Contrast [0, 16]
+  # Contrast [0, 16].
   rpiCameraContrast: 1
-  # Saturation [0, 16]
+  # Saturation [0, 16].
   rpiCameraSaturation: 1
-  # Sharpness [0, 16]
+  # Sharpness [0, 16].
   rpiCameraSharpness: 1
   # Exposure mode.
-  # values: normal, short, long, custom
+  # values: normal, short, long, custom.
   rpiCameraExposure: normal
   # Auto-white-balance mode.
-  # values: auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy, custom
+  # values: auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy, custom.
   rpiCameraAWB: auto
   # Auto-white-balance fixed gains. This can be used in place of rpiCameraAWB.
-  # format: [red,blue]
+  # format: [red,blue].
   rpiCameraAWBGains: [0, 0]
   # Denoise operating mode.
-  # values: off, cdn_off, cdn_fast, cdn_hq
+  # values: off, cdn_off, cdn_fast, cdn_hq.
   rpiCameraDenoise: "off"
   # Fixed shutter speed, in microseconds.
   rpiCameraShutter: 0
   # Metering mode of the AEC/AGC algorithm.
-  # values: centre, spot, matrix, custom
+  # values: centre, spot, matrix, custom.
   rpiCameraMetering: centre
-  # Fixed gain
+  # Fixed gain.
   rpiCameraGain: 0
-  # EV compensation of the image [-10, 10]
+  # EV compensation of the image [-10, 10].
   rpiCameraEV: 0
-  # Region of interest, in format x,y,width,height (all normalized between 0 and 1)
+  # Region of interest, in format x,y,width,height (all normalized between 0 and 1).
   rpiCameraROI:
   # Whether to enable HDR on Raspberry Camera 3.
   rpiCameraHDR: false
-  # Tuning file
+  # Tuning file.
   rpiCameraTuningFile:
   # Sensor mode, in format [width]:[height]:[bit-depth]:[packing]
   # bit-depth and packing are optional.
   rpiCameraMode:
-  # frames per second
+  # frames per second.
   rpiCameraFPS: 30
-  # Autofocus mode
-  # values: auto, manual, continuous
+  # Autofocus mode.
+  # values: auto, manual, continuous.
   rpiCameraAfMode: continuous
-  # Autofocus range
-  # values: normal, macro, full
+  # Autofocus range.
+  # values: normal, macro, full.
   rpiCameraAfRange: normal
-  # Autofocus speed
-  # values: normal, fast
+  # Autofocus speed.
+  # values: normal, fast.
   rpiCameraAfSpeed: normal
   # Lens position (for manual autofocus only), will be set to focus to a specific distance
   # calculated by the following formula: d = 1 / value
@@ -585,16 +605,18 @@ pathDefaults:
   # Text that is printed on each frame.
   # format is the one of the strftime() function.
   rpiCameraTextOverlay: '%Y-%m-%d %H:%M:%S - MediaMTX'
-  # Codec. Available values: auto, hardwareH264, softwareH264
+  # Codec. Available values: auto, hardwareH264, softwareH264, mjpeg.
   rpiCameraCodec: auto
-  # Period between IDR frames
+  # Period between H264 IDR frames.
   rpiCameraIDRPeriod: 60
-  # Bitrate
+  # H264 Bitrate.
   rpiCameraBitrate: 5000000
-  # H264 profile
+  # H264 profile.
   rpiCameraProfile: main
-  # H264 level
+  # H264 level.
   rpiCameraLevel: '4.1'
+  # JPEG quality.
+  rpiCameraJPEGQuality: 60
 
   ###############################################
   # Default path settings -> Hooks
