@@ -1,4 +1,4 @@
-#UnityVLC
+#vlc-unity
 
 Unity调用VLC的库解码视频显示到3D场景中，支持常见本地视频和rtmp、rtsp等视频流。  
 
@@ -22,6 +22,6 @@ Android arm64测试
 本地rtsp测试     
 先启动mediamtx    
 再用ffmpeg推流   
-ffmpeg -re -i G:\MyProject\UnityVLC\Assets\StreamingAssets\test.mp4 -c copy -rtsp_transport tcp -f rtsp rtsp://127.0.0.1:8554/stream    
+ffmpeg -re -i G:\MyProject\vlc-unity\Assets\StreamingAssets\test.mp4 -c copy -rtsp_transport tcp -f rtsp rtsp://127.0.0.1:8554/stream    
 最后再播放   
 ![输入图片说明](%E6%9C%AC%E5%9C%B0rtsp%E6%B5%8B%E8%AF%95.png)
