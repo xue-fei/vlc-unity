@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using AOT;
 using Debug = UnityEngine.Debug;
@@ -51,7 +52,15 @@ namespace VLC
                 Debug.LogError("Failed creat libvlc instance...");
                 return;
             }
-            _media = LibVLC.libvlc_media_new_location(_libvlc, url);
+            // 本地文件 如 file:///G:/MyProject/vlc-unity/Assets/StreamingAssets/test.mp4
+            if (File.Exists(url))
+            {
+                _media = LibVLC.libvlc_media_new_path(_libvlc, url); 
+            }
+            else
+            {
+                _media = LibVLC.libvlc_media_new_location(_libvlc, url);
+            }
             string[] args2 =
                 {
                     ":avcodec-hw=any",
