@@ -35,6 +35,9 @@ namespace VLC
 
         public void Init(uint width, uint height, string url)
         {
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+            LibVLC.XInitThreads();
+#endif
             _width = width;
             _height = height;
             _gcHandle = GCHandle.Alloc(this);

@@ -18,7 +18,9 @@ namespace VLC
 #else
         
 #endif
-         
+        [DllImport("libX11", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int XInitThreads();
+
         [DllImport(pluginName)]
         internal static extern IntPtr libvlc_get_version();
 
