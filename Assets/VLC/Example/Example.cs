@@ -116,7 +116,8 @@ public class Example : MonoBehaviour
     IEnumerator GetSize()
     {
         float time = Time.time;
-        while (true)
+        bool timeout = false;
+        while (!timeout)
         {
             player.GetSize((w, h) =>
             {
@@ -133,7 +134,8 @@ public class Example : MonoBehaviour
             }
             if (Time.time - time >= 5f)
             {
-                Dispose();
+                timeout = true; 
+                Dispose(); 
                 Debug.LogWarning("无法播放");
                 break;
             }
