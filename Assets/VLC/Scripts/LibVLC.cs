@@ -129,6 +129,9 @@ namespace VLC
         //LibVLC 4.0.0 or later
         [DllImport(pluginName)]
         internal static extern int libvlc_media_parse_request(IntPtr mediaPlayer, libvlc_media_parse_flag_t parse_flag, int timeout);
+
+        [DllImport(pluginName)]
+        internal static extern int libvlc_audio_set_volume(IntPtr mediaPlayer, int i_volume);
     }
 
     public enum libvlc_media_parse_flag_t

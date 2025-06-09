@@ -26,6 +26,7 @@ public class Example : MonoBehaviour
     public Button btnStop;
     public AspectRatioFitter aspectRatio;
     public InputField inputField;
+    public Slider sliderVolume;
 
     // Use this for initialization
     void Start()
@@ -74,6 +75,8 @@ public class Example : MonoBehaviour
         myDrag.callback.AddListener(drag);
         EventTrigger eventTrigger = slider.gameObject.AddComponent<EventTrigger>();
         eventTrigger.triggers.Add(myDrag);
+
+        sliderVolume.onValueChanged.AddListener(OnVolume);
     }
 
     byte[] img;
@@ -188,6 +191,11 @@ public class Example : MonoBehaviour
                 Dispose();
             }
         }
+    }
+
+    private void OnVolume(float volume)
+    {
+        player.SetVolume((int)volume);
     }
 
     private void Dispose()

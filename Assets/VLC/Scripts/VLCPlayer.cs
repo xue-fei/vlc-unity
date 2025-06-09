@@ -58,7 +58,7 @@ namespace VLC
             // 本地文件 如 file:///G:/MyProject/vlc-unity/Assets/StreamingAssets/test.mp4
             if (File.Exists(url))
             {
-                _media = LibVLC.libvlc_media_new_path(_libvlc, url); 
+                _media = LibVLC.libvlc_media_new_path(_libvlc, url);
             }
             else
             {
@@ -390,6 +390,15 @@ namespace VLC
             {
                 action(progress, time);
             }
+        }
+
+        /// <summary>
+        /// 设置音量
+        /// </summary>
+        /// <param name="volume">0-100</param>
+        public void SetVolume(int volume)
+        {
+            LibVLC.libvlc_audio_set_volume(_mediaPlayer, volume);
         }
 
         public string GetVersion()
