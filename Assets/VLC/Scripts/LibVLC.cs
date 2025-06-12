@@ -15,8 +15,8 @@ namespace VLC
         private const string pluginName = "libvlc.so";
 #elif UNITY_ANDROID && !UNITY_EDITOR
         private const string pluginName = "libvlc.so";
-#else
-        
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+        private const string pluginName = "libvlc";
 #endif
         [DllImport("libX11", CallingConvention = CallingConvention.Cdecl)]
         public static extern int XInitThreads();
