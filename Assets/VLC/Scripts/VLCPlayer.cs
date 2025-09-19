@@ -240,7 +240,7 @@ namespace VLC
                 code = -1;
                 return code;
             }
-            Debug.LogWarning("code:" + code + " _width:" + _width + " _height:" + _height);
+            //Debug.LogWarning("code:" + code + " _width:" + _width + " _height:" + _height);
             action?.Invoke(_width, _height);
             return code;
         }
