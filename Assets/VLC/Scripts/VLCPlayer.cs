@@ -392,6 +392,11 @@ namespace VLC
             }
         }
 
+        public float GetProgress()
+        {
+            return (float)len / length;
+        }
+
         /// <summary>
         /// 设置音量
         /// </summary>

@@ -5,40 +5,66 @@ using UnityEngine.UI;
 namespace VLC
 {
     [RequireComponent(typeof(Image))]
-    public class MediaPlayer : MonoBehaviour
+    public class MediaPlayerUGUI : MonoBehaviour
     {
         private Image image;
         public string videoPath;
+        public bool autoPlay = false;
         private VLCPlayer player;
         private Texture2D texture;
         private uint width = 0;
         private uint height = 0;
         private AspectRatioFitter aspectRatio;
+        private float progress;
 
         private void Awake()
         {
+            Loom.Initialize();
+
             image = GetComponent<Image>();
             aspectRatio = GetComponent<AspectRatioFitter>();
             if (aspectRatio == null)
             {
                 aspectRatio = gameObject.AddComponent<AspectRatioFitter>();
             }
+
+            player = new VLCPlayer();
+            player.Init(width, height, videoPath);
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            Loom.Initialize();
-
-            Play();
+            if (autoPlay)
+            {
+                Play();
+            }
         }
 
-        void Play()
+        public void Play()
         {
-            player = new VLCPlayer();
-            player.Init(width, height, videoPath);
             player.Play();
             StartCoroutine(GetSize());
+        }
+
+        public void SetPosition(float progress)
+        {
+            player?.SetPosition(progress);
+        }
+
+        public float GetProgress()
+        {
+            return player.GetProgress();
+        }
+
+        public void Pause()
+        {
+            player.Pause();
+        }
+
+        public void Stop()
+        {
+            player.Stop();
         }
 
         byte[] img;
