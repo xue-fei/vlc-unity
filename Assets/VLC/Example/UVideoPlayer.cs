@@ -5,15 +5,24 @@ using VLC;
 
 public class UVideoPlayer : MonoBehaviour
 {
-    public Image image;
+    private Image image;
     public string videoPath;
     private VLCPlayer player;
     private Texture2D texture;
     private uint width = 0;
     private uint height = 0;
+    private AspectRatioFitter aspectRatio;
 
-    public Button btnPlay;
-    public AspectRatioFitter aspectRatio;
+    private void Awake()
+    {
+        image = GetComponent<Image>();
+        aspectRatio = GetComponent<AspectRatioFitter>();
+        if (aspectRatio == null)
+        {
+            aspectRatio = gameObject.AddComponent<AspectRatioFitter>();
+        }
+        image.material = Resources.Load<Material>("Materials/Material");
+    }
 
     // Start is called before the first frame update
     void Start()
