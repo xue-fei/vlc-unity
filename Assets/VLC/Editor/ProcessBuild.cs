@@ -53,7 +53,7 @@ public class ProcessBuild
         if (buildTarget == BuildTarget.StandaloneWindows64)
         {
             Debug.LogWarning("Win_x86_64");
-            Copy(Application.dataPath + "/Plugins/Win/x86_64/", disDirStr);
+            Copy(Application.dataPath + "/VLC/Plugins/Win/x86_64/", disDirStr);
         }
         //if (buildTarget == BuildTarget.StandaloneWindows)
         //{
@@ -63,7 +63,7 @@ public class ProcessBuild
         if (buildTarget == BuildTarget.StandaloneLinux64)
         {
             Debug.LogWarning("Linux_x86_64");
-            Copy(Application.dataPath + "/Plugins/Linux/x86_64/", disDirStr);
+            Copy(Application.dataPath + "/VLC/Plugins/Linux/x86_64/", disDirStr);
         }
         #endregion
     }

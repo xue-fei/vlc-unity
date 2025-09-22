@@ -21,11 +21,11 @@ public class SetDll : EditorWindow
         EditorGUILayout.Space();
         if (GUILayout.Button("Dll设置平台和架构"))
         {
-            //SetConfig(Application.dataPath + "/Plugins/Win/x86/", BuildTarget.StandaloneWindows);
-            //SetConfig(Application.dataPath + "/Plugins/Win/x86_64/", BuildTarget.StandaloneWindows64);
-            SetConfig(Application.dataPath + "/Plugins/Linux/x86_64/", BuildTarget.StandaloneLinux64);
-            //SetConfig(Application.dataPath + "/Plugins/Android/arm64-v8a/", BuildTarget.Android);
-            //SetConfig(Application.dataPath + "/Plugins/Android/armeabi-v7a/", BuildTarget.Android);
+            //SetConfig(Application.dataPath + "/VLC/Plugins/Win/x86/", BuildTarget.StandaloneWindows);
+            //SetConfig(Application.dataPath + "/VLC/Plugins/Win/x86_64/", BuildTarget.StandaloneWindows64);
+            SetConfig(Application.dataPath + "/VLC/Plugins/Linux/x86_64/", BuildTarget.StandaloneLinux64);
+            //SetConfig(Application.dataPath + "/VLC/Plugins/Android/arm64-v8a/", BuildTarget.Android);
+            //SetConfig(Application.dataPath + "/VLC/Plugins/Android/armeabi-v7a/", BuildTarget.Android);
         }
     }
 
