@@ -54,7 +54,14 @@ namespace VLC
 
         public float GetProgress()
         {
-            return player.GetProgress();
+            if (player != null)
+            {
+                return player.GetProgress();
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public void Pause()
@@ -116,7 +123,6 @@ namespace VLC
                 });
                 if (width > 0 && height > 0)
                 {
-                    player.SetFormat();
                     player.Play();
                     break;
                 }
@@ -137,12 +143,7 @@ namespace VLC
                     image.SetNativeSize();
                     aspectRatio.aspectRatio = (float)width / (float)height;
                 });
-                player.SetFormat();
-                Loom.RunAsync(() =>
-                {
-                    player.Stop();
-                    player.Play();
-                });
+                player.Play();
                 image.sprite = null;
             }
             yield return null;

@@ -98,6 +98,8 @@ namespace VLC
             _videoDisplay = VideoDisplay;
 
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
+
+            LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
 
         void attachEvents(IntPtr eventManager)
@@ -245,11 +247,6 @@ namespace VLC
             return code;
         }
 
-        public void SetFormat()
-        {
-            LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
-        }
-
         /// <summary>
         /// 播放
         /// </summary>
@@ -263,6 +260,9 @@ namespace VLC
                     return false;
                 }
                 //LibVLC.libvlc_media_player_set_hwnd(_mediaPlayer, (System.IntPtr)0);
+
+                LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
+
                 if (0 != LibVLC.libvlc_media_player_play(_mediaPlayer))
                 {
                     return false;

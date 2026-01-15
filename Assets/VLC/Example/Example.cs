@@ -131,14 +131,13 @@ public class Example : MonoBehaviour
             if (width > 0 && height > 0)
             {
                 Debug.LogWarning(" _width:" + width + " _height:" + height);
-                player.SetFormat();
                 player.Play();
                 break;
             }
             if (Time.time - time >= 5f)
             {
-                timeout = true; 
-                Dispose(); 
+                timeout = true;
+                Dispose();
                 Debug.LogWarning("无法播放");
                 break;
             }
@@ -153,8 +152,6 @@ public class Example : MonoBehaviour
                 height = h;
                 aspectRatio.aspectRatio = (float)width / (float)height;
             });
-            player.SetFormat();
-            player.Stop();
             player.Play();
             yield break;
         }
