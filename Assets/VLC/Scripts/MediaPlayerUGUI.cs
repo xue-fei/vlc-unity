@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -44,7 +43,6 @@ namespace VLC
         public void Play()
         {
             player.Play();
-            StartCoroutine(GetSize());
         }
 
         public void SetPosition(float progress)
@@ -77,7 +75,7 @@ namespace VLC
         byte[] img;
         private void Update()
         {
-            if (player != null && player.GetVideoImage(out img))
+            if (player != null && player.GetVideoImage(out img, out width, out height))
             {
                 if (texture == null)
                 {
@@ -89,6 +87,12 @@ namespace VLC
                         image.material.mainTexture = texture;
                         image.SetMaterialDirty();
                         image.SetNativeSize();
+                        aspectRatio.aspectRatio = (float)width / (float)height;
+                        image.sprite = null;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("here");
                     }
                 }
                 else
@@ -107,46 +111,6 @@ namespace VLC
         private void OnProgress(float progress, string time)
         {
             //text.text = time;
-        }
-
-        IEnumerator GetSize()
-        {
-            float time = Time.time;
-            while (player.GetSize() == -1)
-            {
-                player.GetSize((w, h) =>
-                {
-                    width = w;
-                    height = h;
-                    image.SetNativeSize();
-                    aspectRatio.aspectRatio = (float)width / (float)height;
-                });
-                if (width > 0 && height > 0)
-                {
-                    player.Play();
-                    break;
-                }
-                if (Time.time - time >= 5f)
-                {
-                    player.Stop();
-                    Debug.LogWarning("无法播放");
-                    break;
-                }
-                yield return new WaitForSeconds(0.2f);
-            }
-            if (player.GetSize() == 0)
-            {
-                player.GetSize((w, h) =>
-                {
-                    width = w;
-                    height = h;
-                    image.SetNativeSize();
-                    aspectRatio.aspectRatio = (float)width / (float)height;
-                });
-                player.Play();
-                image.sprite = null;
-            }
-            yield return null;
         }
 
         private void OnDestroy()

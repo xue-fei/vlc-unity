@@ -41,7 +41,7 @@ namespace VLC
                 {
                     mediaPlayer.Play();
                 }
-                if (GUILayout.Button("Pause"))
+                if (GUILayout.Button("Pause/Resum"))
                 {
                     mediaPlayer.Pause();
                 }

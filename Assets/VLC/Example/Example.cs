@@ -82,7 +82,7 @@ public class Example : MonoBehaviour
     byte[] img;
     private void Update()
     {
-        if (player != null && player.GetVideoImage(out img))
+        if (player != null && player.GetVideoImage(out img,out width,out height))
         {
             if (texture == null)
             {
@@ -165,7 +165,7 @@ public class Example : MonoBehaviour
             if (!player.IsPlaying())
             {
                 player.Play();
-                StartCoroutine(GetSize());
+                //StartCoroutine(GetSize());
             }
         }
         if (button.name == btnPause.name)

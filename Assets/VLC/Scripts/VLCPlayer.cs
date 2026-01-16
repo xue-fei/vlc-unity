@@ -26,7 +26,6 @@ namespace VLC
         /// </summary>
         private float length = 0;
         private GCHandle _gcHandle;
-        private bool _locked = true;
         private bool _update = false;
         // 事件列表
         List<libvlc_event_e> events = new List<libvlc_event_e>();
@@ -48,6 +47,7 @@ namespace VLC
                     "--no-video-title-show",
                     "--no-osd",
                     "--video-filter=adjust",
+                    "--network-caching=300",
                 };
             _libvlc = LibVLC.libvlc_new(args1.Length, args1);
             if (_libvlc == IntPtr.Zero)
@@ -56,7 +56,8 @@ namespace VLC
                 return;
             }
             // 本地文件 如 file:///G:/MyProject/vlc-unity/Assets/StreamingAssets/test.mp4
-            if (File.Exists(url))
+            bool local = File.Exists(url);
+            if (local)
             {
                 _media = LibVLC.libvlc_media_new_path(_libvlc, url);
             }
@@ -98,14 +99,14 @@ namespace VLC
             _videoDisplay = VideoDisplay;
 
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
-
-            LibVLC.libvlc_video_set_format(_mediaPlayer, "RV24", _width, _height, _width * _channels);
         }
 
         void attachEvents(IntPtr eventManager)
         {
             events.Add(libvlc_event_e.libvlc_MediaPlayerOpening);
             events.Add(libvlc_event_e.libvlc_MediaPlayerBuffering);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerESAdded);
+            events.Add(libvlc_event_e.libvlc_MediaPlayerEncounteredError);
             events.Add(libvlc_event_e.libvlc_MediaPlayerPlaying);
             events.Add(libvlc_event_e.libvlc_MediaPlayerPaused);
             events.Add(libvlc_event_e.libvlc_MediaPlayerStopped);
@@ -113,24 +114,30 @@ namespace VLC
             events.Add(libvlc_event_e.libvlc_MediaPlayerTimeChanged);
             events.Add(libvlc_event_e.libvlc_MediaPlayerLengthChanged);
             events.Add(libvlc_event_e.libvlc_MediaPlayerMediaChanged);
+            IntPtr userData = GCHandle.ToIntPtr(_gcHandle);
             // 订阅事件
             foreach (libvlc_event_e e in events)
             {
-                LibVLC.libvlc_event_attach(eventManager, e, handleEvents, IntPtr.Zero);
+                LibVLC.libvlc_event_attach(eventManager, e, handleEvents, userData);
             }
         }
 
         void detachEvents(IntPtr eventManager)
         {
+            IntPtr userData = GCHandle.ToIntPtr(_gcHandle);
             foreach (libvlc_event_e e in events)
             {
-                LibVLC.libvlc_event_detach(eventManager, e, handleEvents, IntPtr.Zero);
+                LibVLC.libvlc_event_detach(eventManager, e, handleEvents, userData);
             }
         }
 
         [MonoPInvokeCallback(typeof(libvlc_callback_t))]
         public static void handleEvents(libvlc_event_t e, IntPtr userData)
         {
+            GCHandle handle = GCHandle.FromIntPtr(userData);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            if (instance == null) return;
+
             switch (e.type)
             {
                 case libvlc_event_e.libvlc_MediaPlayerOpening:
@@ -138,6 +145,17 @@ namespace VLC
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerBuffering:
                     //Debug.LogWarning("libvlc_MediaPlayerBuffering");
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerESAdded:
+                    // 此时视频流已发现，可安全获取尺寸 
+                    LibVLC.libvlc_video_get_size(instance._mediaPlayer, 0, ref instance._width, ref instance._height);
+                    if (instance._width > 0 && instance._height > 0)
+                    {
+                        LibVLC.libvlc_video_set_format(instance._mediaPlayer, "RV24", instance._width, instance._height, instance._width * 3);
+                    }
+                    break;
+                case libvlc_event_e.libvlc_MediaPlayerEncounteredError:
+                    Debug.LogWarning("视频加载失败");
                     break;
                 case libvlc_event_e.libvlc_MediaPlayerPlaying:
                     //Debug.LogWarning("libvlc_MediaPlayerPlaying");
@@ -163,9 +181,11 @@ namespace VLC
             }
         }
 
-        public bool GetVideoImage(out byte[] imageData)
+        public bool GetVideoImage(out byte[] imageData, out uint width, out uint height)
         {
             imageData = null;
+            width = _width;
+            height = _height;
             if (_update)
             {
                 imageData = _imageData;
@@ -197,7 +217,6 @@ namespace VLC
             // 通过 opaque 获取实例
             GCHandle handle = GCHandle.FromIntPtr(opaque);
             VLCPlayer instance = (VLCPlayer)handle.Target;
-            instance._locked = true;
             if (instance._imageIntPtr == IntPtr.Zero)
             {
                 if (instance._width == 0 || instance._height == 0)
@@ -218,7 +237,6 @@ namespace VLC
         {
             GCHandle handle = GCHandle.FromIntPtr(opaque);
             VLCPlayer instance = (VLCPlayer)handle.Target;
-            instance._locked = false;
         }
 
         [MonoPInvokeCallback(typeof(libvlc_video_display_cb))]
@@ -237,14 +255,16 @@ namespace VLC
         public int GetSize(Action<uint, uint> action = null)
         {
             int code = LibVLC.libvlc_video_get_size(_mediaPlayer, 0, ref _width, ref _height);
-            if (_width == 0 || _height == 0)
+            if (_width > 0 && _height > 0)
             {
-                code = -1;
-                return code;
+                length = GetMediaLength();
+                Debug.Log("length:" + length);
+
+                Debug.LogWarning($"视频尺寸: {_width}x{_height}");
+                action?.Invoke(_width, _height);
+                return 0;
             }
-            //Debug.LogWarning("code:" + code + " _width:" + _width + " _height:" + _height);
-            action?.Invoke(_width, _height);
-            return code;
+            return -1;
         }
 
         /// <summary>
@@ -267,8 +287,6 @@ namespace VLC
                 {
                     return false;
                 }
-                length = GetMediaLength();
-                Debug.Log("length:" + length);
                 return true;
             }
             catch (Exception e)
