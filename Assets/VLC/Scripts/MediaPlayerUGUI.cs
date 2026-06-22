@@ -16,6 +16,11 @@ namespace VLC
         private AspectRatioFitter aspectRatio;
         private float progress;
 
+        // ---- 音频 ----
+        private AudioSource _audioSource;
+        private AudioClip _audioClip;
+        private bool _audioClipCreated = false;
+
         private void Awake()
         {
             Loom.Initialize();
@@ -26,6 +31,13 @@ namespace VLC
             {
                 aspectRatio = gameObject.AddComponent<AspectRatioFitter>();
             }
+
+            // ---- 初始化 AudioSource ----
+            _audioSource = GetComponent<AudioSource>();
+            if (_audioSource == null)
+                _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.spatialBlend = 0f;
+            _audioSource.loop = true;
 
             player = new VLCPlayer();
             player.Init(width, height, videoPath);
@@ -75,6 +87,22 @@ namespace VLC
         byte[] img;
         private void Update()
         {
+            // ---- 首次拿到音频参数时建流式 AudioClip ----
+            if (!_audioClipCreated && player != null && player.AudioParamsReady)
+            {
+                _audioClipCreated = true;
+                _audioClip = AudioClip.Create(
+                    "VLCAudio",
+                    player.AudioSampleRate,
+                    player.AudioChannels,
+                    player.AudioSampleRate,
+                    true,
+                    OnAudioRead,
+                    OnAudioSetPosition);
+                _audioSource.clip = _audioClip;
+                _audioSource.Play();
+            }
+
             if (player != null && player.GetVideoImage(out img, out width, out height))
             {
                 if (texture == null)
@@ -113,13 +141,35 @@ namespace VLC
             //text.text = time;
         }
 
+        // ---- 音频线程回调 ----
+        private void OnAudioRead(float[] data)
+        {
+            player?.ReadAudioData(data);
+        }
+
+        private void OnAudioSetPosition(int newPosition) { }
+
+        /// <summary>通过 AudioSource.volume 控制音量（0~1）</summary>
+        public void SetVolume(float normalizedVolume)
+        {
+            if (_audioSource != null)
+                _audioSource.volume = Mathf.Clamp01(normalizedVolume);
+        }
+
         private void OnDestroy()
         {
-            if (player.IsPlaying())
+            _audioSource?.Stop();
+            if (_audioClip != null)
             {
-                player.Stop();
+                Destroy(_audioClip);
+                _audioClip = null;
             }
-            player?.Dispose();
+            if (player != null)
+            {
+                if (player.IsPlaying()) player.Stop();
+                player.Dispose();
+                player = null;
+            }
         }
     }
 }

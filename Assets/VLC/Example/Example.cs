@@ -28,10 +28,23 @@ public class Example : MonoBehaviour
     public InputField inputField;
     public Slider sliderVolume;
 
+    // ---- 音频 ----
+    private AudioSource _audioSource;
+    private AudioClip _audioClip;
+    private bool _audioClipCreated = false;
+
     // Use this for initialization
     void Start()
     {
         Loom.Initialize();
+
+        // ---- 初始化 AudioSource ----
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null)
+            _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.spatialBlend = 0f;
+        _audioSource.loop = true;
+
         //videoPath = "https://img.qunliao.info:443/4oEGX68t_9505974551.mp4";
         //videoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8";
         // videoPath = "http://39.134.115.163:8080/PLTV/88888910/224/3221225632/index.m3u8";
@@ -57,6 +70,9 @@ public class Example : MonoBehaviour
                 videoPath = inputField.text;
                 player = new VLCPlayer();
                 player.Init(width, height, inputField.text);
+                // 重置音频状态，准备接收新流的参数
+                _audioClipCreated = false;
+                _audioSource.Stop();
             }
             OnCtrl(btnStart);
         });
@@ -82,7 +98,23 @@ public class Example : MonoBehaviour
     byte[] img;
     private void Update()
     {
-        if (player != null && player.GetVideoImage(out img,out width,out height))
+        // ---- 首次拿到音频参数时建流式 AudioClip ----
+        if (!_audioClipCreated && player != null && player.AudioParamsReady)
+        {
+            _audioClipCreated = true;
+            _audioClip = AudioClip.Create(
+                "VLCAudio",
+                player.AudioSampleRate,
+                player.AudioChannels,
+                player.AudioSampleRate,
+                true,                   // stream
+                OnAudioRead,
+                OnAudioSetPosition);
+            _audioSource.clip = _audioClip;
+            _audioSource.Play();
+        }
+
+        if (player != null && player.GetVideoImage(out img, out width, out height))
         {
             if (texture == null)
             {
@@ -192,8 +224,19 @@ public class Example : MonoBehaviour
 
     private void OnVolume(float volume)
     {
-        player.SetVolume((int)volume);
+        // VLC 音频走 AudioSource，音量统一在此控制（0~100 映射到 0~1）
+        if (_audioSource != null)
+            _audioSource.volume = Mathf.Clamp01(volume / 100f);
+        // 如需同时静音 VLC 内部输出可保留：player?.SetVolume(0);
     }
+
+    // ---- 音频线程回调 ----
+    private void OnAudioRead(float[] data)
+    {
+        player?.ReadAudioData(data);
+    }
+
+    private void OnAudioSetPosition(int newPosition) { /* seek 由 VLCPlayer.AudioFlush 处理 */ }
 
     private void Dispose()
     {
@@ -212,6 +255,15 @@ public class Example : MonoBehaviour
             width = 0;
             height = 0;
             videoPath = "";
+
+            // 停止音频并重置状态
+            _audioSource?.Stop();
+            _audioClipCreated = false;
+            if (_audioClip != null)
+            {
+                Destroy(_audioClip);
+                _audioClip = null;
+            }
         }
     }
 

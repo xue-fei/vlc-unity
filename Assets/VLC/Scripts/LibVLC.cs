@@ -132,6 +132,37 @@ namespace VLC
 
         [DllImport(pluginName)]
         internal static extern int libvlc_audio_set_volume(IntPtr mediaPlayer, int i_volume);
+
+        /// <summary>
+        /// 注册音频播放回调。调用后 libvlc 内置音频输出将被禁用，
+        /// 所有解码后的 PCM 数据通过 play 回调传给调用方。
+        /// </summary>
+        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void libvlc_audio_set_callbacks(
+            IntPtr mp,
+            libvlc_audio_play_cb play,
+            libvlc_audio_pause_cb pause,
+            libvlc_audio_resume_cb resume,
+            libvlc_audio_flush_cb flush,
+            libvlc_audio_drain_cb drain,
+            IntPtr opaque);
+
+        /// <summary>
+        /// 固定输出格式。必须在 libvlc_audio_set_callbacks 之前调用。
+        /// format: "S16N"=有符号16位本机字节序, "FL32"=32位浮点
+        /// </summary>
+        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void libvlc_audio_set_format(
+            IntPtr mp,
+            [MarshalAs(UnmanagedType.LPStr)] string format,
+            uint rate,
+            uint channels);
+
+        /// <summary>注册音量变化通知回调（可选）</summary>
+        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void libvlc_audio_set_volume_callback(
+            IntPtr mp,
+            libvlc_audio_set_volume_cb set_volume);
     }
 
     public enum libvlc_media_parse_flag_t
@@ -199,4 +230,24 @@ namespace VLC
     public delegate void libvlc_video_display_cb(IntPtr opaque, IntPtr picture);
     public delegate void libvlc_video_unlock_cb(IntPtr opaque, IntPtr picture, ref IntPtr planes);
     public delegate void libvlc_callback_t(libvlc_event_t p_event, IntPtr p_data);
+
+    /// <summary>PCM 数据就绪回调。count = 每声道采样数。</summary>
+    public delegate void libvlc_audio_play_cb(IntPtr opaque, IntPtr samples, uint count, long pts);
+
+    /// <summary>暂停回调</summary>
+    public delegate void libvlc_audio_pause_cb(IntPtr opaque, long pts);
+
+    /// <summary>恢复播放回调</summary>
+    public delegate void libvlc_audio_resume_cb(IntPtr opaque, long pts);
+
+    /// <summary>Seek/停止时清空回调</summary>
+    public delegate void libvlc_audio_flush_cb(IntPtr opaque, long pts);
+
+    /// <summary>播放队列耗尽回调</summary>
+    public delegate void libvlc_audio_drain_cb(IntPtr opaque);
+
+    /// <summary>音量变化回调</summary>
+    public delegate void libvlc_audio_set_volume_cb(IntPtr opaque, float volume,
+        [MarshalAs(UnmanagedType.Bool)] bool mute);
+
 }

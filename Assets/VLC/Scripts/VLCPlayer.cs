@@ -30,6 +30,33 @@ namespace VLC
         // 事件列表
         List<libvlc_event_e> events = new List<libvlc_event_e>();
 
+        // ====== 音频回调相关 ======
+        // 委托必须持有引用，防止 GC 回收
+        private libvlc_audio_play_cb _audioPlayCb;
+        private libvlc_audio_pause_cb _audioPauseCb;
+        private libvlc_audio_resume_cb _audioResumeCb;
+        private libvlc_audio_flush_cb _audioFlushCb;
+        private libvlc_audio_drain_cb _audioDrainCb;
+        private libvlc_audio_set_volume_cb _audioVolumeCb;
+
+        // 环形缓冲区（float PCM，解码线程写、Unity音频线程读）
+        private const int RING_BUFFER_SAMPLES = 44100 * 2 * 4; // 4 秒 @ 44100 stereo
+        private readonly float[] _audioRingBuffer = new float[RING_BUFFER_SAMPLES];
+        private int _audioWritePos = 0;
+        private int _audioReadPos = 0;
+        private int _audioAvailable = 0;
+        private readonly object _audioLock = new object();
+
+        // 音频参数（由 AudioSetFormat 回调填入）
+        private int _audioSampleRate = 44100;
+        private int _audioChannels = 2;
+        private bool _audioParamsReady = false;
+
+        // 供外部查询"是否有新音频参数可以建 AudioClip"
+        public bool AudioParamsReady => _audioParamsReady;
+        public int AudioSampleRate => _audioSampleRate;
+        public int AudioChannels => _audioChannels;
+
         #region 公开函数
 
         public void Init(uint width, uint height, string url)
@@ -99,6 +126,23 @@ namespace VLC
             _videoDisplay = VideoDisplay;
 
             LibVLC.libvlc_video_set_callbacks(_mediaPlayer, _videoLock, _videoUnlock, _videoDisplay, GCHandle.ToIntPtr(_gcHandle));
+
+            // ====== 注册音频回调 ======
+            _audioPlayCb = AudioPlay;
+            _audioPauseCb = AudioPause;
+            _audioResumeCb = AudioResume;
+            _audioFlushCb = AudioFlush;
+            _audioDrainCb = AudioDrain;
+            _audioVolumeCb = AudioSetVolumeCb;
+
+            // 固定格式：有符号16位小端，44100Hz，2声道
+            // libvlc 会把解码出的音频重采样/转格式到此规格后再回调
+            LibVLC.libvlc_audio_set_format(_mediaPlayer, "S16N", 44100, 2);
+            LibVLC.libvlc_audio_set_callbacks(_mediaPlayer,
+                _audioPlayCb, _audioPauseCb, _audioResumeCb,
+                _audioFlushCb, _audioDrainCb,
+                GCHandle.ToIntPtr(_gcHandle));
+            LibVLC.libvlc_audio_set_volume_callback(_mediaPlayer, _audioVolumeCb);
         }
 
         void attachEvents(IntPtr eventManager)
@@ -463,6 +507,109 @@ namespace VLC
                     + ts.Seconds.ToString("00"));
         }
 
-        #endregion 
+        #endregion
+
+        // ====================================================
+        // 音频回调（libvlc 解码线程调用，需 MonoPInvokeCallback）
+        // ====================================================
+
+        /// <summary>
+        /// libvlc 每次解码好一批 PCM 后调用此函数。
+        /// 把 S16 数据转换为 float 并写入环形缓冲区。
+        /// </summary>
+        [MonoPInvokeCallback(typeof(libvlc_audio_play_cb))]
+        public static void AudioPlay(IntPtr opaque, IntPtr samples, uint count, long pts)
+        {
+            GCHandle handle = GCHandle.FromIntPtr(opaque);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            if (instance == null) return;
+
+            // count = 每声道采样数，总 short 个数 = count * channels
+            int totalSamples = (int)(count * instance._audioChannels);
+
+            lock (instance._audioLock)
+            {
+                for (int i = 0; i < totalSamples; i++)
+                {
+                    // S16N：每个 short 2 字节，范围 -32768~32767 → float -1~1
+                    short s = Marshal.ReadInt16(samples, i * 2);
+                    float f = s / 32768.0f;
+
+                    instance._audioRingBuffer[instance._audioWritePos] = f;
+                    instance._audioWritePos = (instance._audioWritePos + 1) % RING_BUFFER_SAMPLES;
+
+                    if (instance._audioAvailable < RING_BUFFER_SAMPLES)
+                        instance._audioAvailable++;
+                    else
+                        // 缓冲区满时丢弃最旧数据（移动读指针）
+                        instance._audioReadPos = (instance._audioReadPos + 1) % RING_BUFFER_SAMPLES;
+                }
+
+                // 首次进来时记录格式已就绪（格式在 libvlc_audio_set_format 中已固定）
+                if (!instance._audioParamsReady)
+                {
+                    instance._audioSampleRate = 44100;
+                    instance._audioChannels = 2;
+                    instance._audioParamsReady = true;
+                }
+            }
+        }
+
+        [MonoPInvokeCallback(typeof(libvlc_audio_pause_cb))]
+        public static void AudioPause(IntPtr opaque, long pts) { }
+
+        [MonoPInvokeCallback(typeof(libvlc_audio_resume_cb))]
+        public static void AudioResume(IntPtr opaque, long pts) { }
+
+        /// <summary>
+        /// seek 或停止时清空环形缓冲区，防止播旧数据。
+        /// </summary>
+        [MonoPInvokeCallback(typeof(libvlc_audio_flush_cb))]
+        public static void AudioFlush(IntPtr opaque, long pts)
+        {
+            GCHandle handle = GCHandle.FromIntPtr(opaque);
+            VLCPlayer instance = (VLCPlayer)handle.Target;
+            if (instance == null) return;
+            lock (instance._audioLock)
+            {
+                instance._audioWritePos = 0;
+                instance._audioReadPos = 0;
+                instance._audioAvailable = 0;
+            }
+        }
+
+        [MonoPInvokeCallback(typeof(libvlc_audio_drain_cb))]
+        public static void AudioDrain(IntPtr opaque) { }
+
+        [MonoPInvokeCallback(typeof(libvlc_audio_set_volume_cb))]
+        public static void AudioSetVolumeCb(IntPtr opaque, float volume, bool mute) { }
+
+        // ====================================================
+        // 供 Unity 音频线程（OnAudioRead）调用
+        // ====================================================
+
+        /// <summary>
+        /// Unity AudioClip PCMReaderCallback 中调用此方法填充 data[]。
+        /// 缓冲区不足时补零（静音），避免爆音。
+        /// </summary>
+        public void ReadAudioData(float[] data)
+        {
+            lock (_audioLock)
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    if (_audioAvailable > 0)
+                    {
+                        data[i] = _audioRingBuffer[_audioReadPos];
+                        _audioReadPos = (_audioReadPos + 1) % RING_BUFFER_SAMPLES;
+                        _audioAvailable--;
+                    }
+                    else
+                    {
+                        data[i] = 0f; // 欠载静音
+                    }
+                }
+            }
+        }
     }
 }
